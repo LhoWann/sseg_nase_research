@@ -42,7 +42,7 @@ class LatexTableGenerator:
 
         for row in other_rows:
             line = (
-                f"{row.method} & {row.backbone} & {row. params} & "
+                f"{row.method} & {row.backbone} & {row.params} & "
                 f"{row.flops} & {row.one_shot} & {row.five_shot} \\\\"
             )
             lines.append(line)
@@ -54,7 +54,7 @@ class LatexTableGenerator:
                 line = (
                     rf"\textbf{{{row.method}}} & {row.backbone} & "
                     rf"\textbf{{{row.params}}} & \textbf{{{row.flops}}} & "
-                    rf"\textbf{{{row. one_shot}}} & \textbf{{{row.five_shot}}} \\"
+                    rf"\textbf{{{row.one_shot}}} & \textbf{{{row.five_shot}}} \\"
                 )
                 lines.append(line)
 
@@ -108,7 +108,7 @@ class LatexTableGenerator:
             r"\end{table}",
         ])
 
-        return "\n". join(lines)
+        return "\n".join(lines)
 
     def generate_efficiency_table(
         self,

@@ -44,7 +44,7 @@ class DistillationConfig:
     update_interval:  int = 1
     
     def __post_init__(self) -> None:
-        if not 0.0 < self. ema_decay < 1.0:
+        if not 0.0 < self.ema_decay < 1.0:
             raise ValueError("ema_decay must be in (0, 1)")
         
         if self.distillation_weight < 0:

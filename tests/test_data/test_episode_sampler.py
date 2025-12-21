@@ -114,7 +114,7 @@ class MockDataset(Dataset):
 
 class TestEpisodeSampler:
     
-    @pytest. fixture
+    @pytest.fixture
     def dataset(self) -> MockDataset:
         return MockDataset(num_classes=20, samples_per_class=50)
     
@@ -162,7 +162,7 @@ class TestEpisodeSampler:
         episode = sampler.sample_episode()
         
         expected_query_size = 5 * 15
-        assert episode. query_images.shape == (expected_query_size, 3, 84, 84)
+        assert episode.query_images.shape == (expected_query_size, 3, 84, 84)
     
     def test_episode_query_labels_shape(
         self, sampler: EpisodeSampler
@@ -177,10 +177,10 @@ class TestEpisodeSampler:
     ) -> None:
         episode = sampler.sample_episode()
         
-        unique_support_labels = torch. unique(episode.support_labels)
+        unique_support_labels = torch.unique(episode.support_labels)
         unique_query_labels = torch.unique(episode.query_labels)
         
-        assert unique_support_labels. min() == 0
+        assert unique_support_labels.min() == 0
         assert unique_support_labels.max() == 4
         assert unique_query_labels.min() == 0
         assert unique_query_labels.max() == 4
@@ -204,7 +204,7 @@ class TestEpisodeSampler:
         episode = sampler.sample_episode()
         
         expected_support_size = 5 * 5
-        assert episode.support_images. shape[0] == expected_support_size
+        assert episode.support_images.shape[0] == expected_support_size
         assert episode.support_labels.shape[0] == expected_support_size
     
     def test_sampler_raises_error_if_insufficient_samples(self) -> None:

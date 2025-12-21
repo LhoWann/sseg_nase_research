@@ -54,7 +54,7 @@ class TensorBoardLogger:
     ) -> None:
         current_step = step if step is not None else self._step
 
-        self._writer. add_scalar("architecture/num_blocks", num_blocks, current_step)
+        self._writer.add_scalar("architecture/num_blocks", num_blocks, current_step)
         self._writer.add_scalar("architecture/num_params", num_params, current_step)
         self._writer.add_scalar("architecture/feature_dim", feature_dim, current_step)
 
@@ -103,7 +103,7 @@ class TensorBoardLogger:
         current_step = step if step is not None else self._step
 
         self._writer.add_scalar(f"eval/{num_shots}shot_accuracy", mean_accuracy, current_step)
-        self._writer. add_scalar(f"eval/{num_shots}shot_margin", margin, current_step)
+        self._writer.add_scalar(f"eval/{num_shots}shot_margin", margin, current_step)
 
     def increment_step(self) -> None:
         self._step += 1
@@ -112,4 +112,4 @@ class TensorBoardLogger:
         self._writer.flush()
 
     def close(self) -> None:
-        self._writer. close()
+        self._writer.close()

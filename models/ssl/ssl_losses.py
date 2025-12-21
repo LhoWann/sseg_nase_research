@@ -24,7 +24,7 @@ class NTXentLoss(nn. Module):
         representations = torch.cat([z_i, z_j], dim=0)
         
         similarity_matrix = F.cosine_similarity(
-            representations. unsqueeze(1), representations.unsqueeze(0), dim=2
+            representations.unsqueeze(1), representations.unsqueeze(0), dim=2
         )
         
         sim_ij = torch.diag(similarity_matrix, batch_size)
@@ -32,9 +32,9 @@ class NTXentLoss(nn. Module):
         positives = torch.cat([sim_ij, sim_ji], dim=0)
         
         mask = torch.eye(2 * batch_size, device=z_i.device, dtype=torch.bool)
-        negatives = similarity_matrix[~mask]. view(2 * batch_size, -1)
+        negatives = similarity_matrix[~mask].view(2 * batch_size, -1)
         
-        logits = torch.cat([positives. unsqueeze(1), negatives], dim=1)
+        logits = torch.cat([positives.unsqueeze(1), negatives], dim=1)
         logits = logits / self._temperature
         
         labels = torch.zeros(2 * batch_size, dtype=torch.long, device=z_i.device)
@@ -59,7 +59,7 @@ class DistillationLoss(nn.Module):
     def forward(self, student_features: Tensor, teacher_features:  Tensor) -> Tensor:
         if self._normalize:
             student_features = F.normalize(student_features, dim=1)
-            teacher_features = F. normalize(teacher_features, dim=1)
+            teacher_features = F.normalize(teacher_features, dim=1)
         
         if self._loss_type == "mse":
             loss = F.mse_loss(student_features, teacher_features)
@@ -85,7 +85,7 @@ class CombinedSSLLoss(nn.Module):
     ):
         super().__init__()
         
-        self. contrastive_loss = NTXentLoss(temperature=temperature)
+        self.contrastive_loss = NTXentLoss(temperature=temperature)
         self.distillation_loss = DistillationLoss(loss_type=distillation_type)
         self._distillation_weight = distillation_weight
     
@@ -97,12 +97,12 @@ class CombinedSSLLoss(nn.Module):
         teacher_features: Tensor,
     ) -> tuple[Tensor, dict[str, float]]:
         contrastive = self.contrastive_loss(z_i, z_j)
-        distillation = self. distillation_loss(student_features, teacher_features)
+        distillation = self.distillation_loss(student_features, teacher_features)
         
         total_loss = contrastive + self._distillation_weight * distillation
         
         loss_components = {
-            "contrastive": contrastive. item(),
+            "contrastive": contrastive.item(),
             "distillation":  distillation.item(),
             "total": total_loss.item(),
         }

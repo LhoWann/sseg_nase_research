@@ -3,14 +3,14 @@ from pathlib import Path
 import sys
 import json
 
-sys. path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from models.evolution. architecture_tracker import ArchitectureTracker
+from models.evolution.architecture_tracker import ArchitectureTracker
 from visualization.plotters.evolution_plotter import EvolutionPlotter
 from visualization.plotters.evolution_plotter import PlotStyle
 from visualization.plotters.loss_plotter import LossPlotter
 from utils.logging.custom_logger import get_logger
-from utils. logging.custom_logger import LogLevel
+from utils.logging.custom_logger import LogLevel
 
 
 def parse_arguments() -> argparse. Namespace:
@@ -18,7 +18,7 @@ def parse_arguments() -> argparse. Namespace:
         description="Analyze network evolution from training logs"
     )
     
-    parser. add_argument(
+    parser.add_argument(
         "--checkpoint-dir",
         type=Path,
         required=True,
@@ -50,9 +50,9 @@ def load_evolution_data(checkpoint_dir: Path) -> dict:
     metadata_path = metadata_files[0]
     
     with open(metadata_path, "r") as f:
-        all_metadata = json. load(f)
+        all_metadata = json.load(f)
     
-    checkpoints = sorted(checkpoint_dir.glob("*. pt"))
+    checkpoints = sorted(checkpoint_dir.glob("*.pt"))
     
     evolution_data = {
         "epochs": [],
@@ -71,30 +71,30 @@ def load_evolution_data(checkpoint_dir: Path) -> dict:
     for ckpt_path in checkpoints: 
         checkpoint = torch.load(ckpt_path, map_location="cpu")
         
-        metadata = checkpoint. get("metadata", {})
+        metadata = checkpoint.get("metadata", {})
         architecture = checkpoint.get("architecture_summary", {})
         
-        evolution_data["epochs"]. append(metadata.get("epoch", 0))
+        evolution_data["epochs"].append(metadata.get("epoch", 0))
         evolution_data["num_params"].append(
             architecture.get("total_params", 0) / 1e6
         )
         evolution_data["num_blocks"].append(
             architecture.get("num_blocks", 0)
         )
-        evolution_data["feature_dims"]. append(
+        evolution_data["feature_dims"].append(
             architecture.get("feature_dim", 0)
         )
         evolution_data["ssl_losses"].append(
             metadata.get("ssl_loss", 0.0)
         )
-        evolution_data["channel_history"]. append(
+        evolution_data["channel_history"].append(
             architecture.get("channel_progression", [])
         )
         
         mutation_history = checkpoint.get("mutation_history", [])
         for mutation in mutation_history:
             if mutation["epoch"] not in evolution_data["mutation_epochs"]: 
-                evolution_data["mutation_epochs"]. append(mutation["epoch"])
+                evolution_data["mutation_epochs"].append(mutation["epoch"])
                 evolution_data["mutation_types"].append(mutation["mutation_type"])
     
     return evolution_data
@@ -156,7 +156,7 @@ def generate_visualizations(
             num_params=evolution_data["num_params"],
             num_blocks=evolution_data["num_blocks"],
             mutation_epochs=evolution_data["mutation_epochs"],
-            level_boundaries=evolution_data. get("level_boundaries"),
+            level_boundaries=evolution_data.get("level_boundaries"),
         )
         generated_files.append(trajectory_path)
     
@@ -171,14 +171,14 @@ def generate_visualizations(
     
     mutation_counts = {}
     for mt in evolution_data["mutation_types"]: 
-        mutation_counts[mt] = mutation_counts. get(mt, 0) + 1
+        mutation_counts[mt] = mutation_counts.get(mt, 0) + 1
     
     if mutation_counts: 
         mutation_path = evolution_plotter.plot_mutation_distribution(
-            mutation_types=list(mutation_counts. keys()),
+            mutation_types=list(mutation_counts.keys()),
             mutation_counts=list(mutation_counts.values()),
         )
-        generated_files. append(mutation_path)
+        generated_files.append(mutation_path)
     
     if evolution_data["ssl_losses"]: 
         loss_path = loss_plotter.plot_loss_with_mutations(
@@ -266,7 +266,7 @@ def analyze_evolution(args: argparse. Namespace) -> None:
         plot_format=args.format,
     )
     
-    logger. info("Generating analysis report")
+    logger.info("Generating analysis report")
     report_path = generate_report(
         evolution_data=evolution_data,
         analysis=analysis,

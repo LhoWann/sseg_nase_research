@@ -51,7 +51,7 @@ class SyntheticGenerator:
         ).item()
         
         y_coords = torch.arange(self._config.image_size).view(-1, 1)
-        x_coords = torch. arange(self._config.image_size).view(1, -1)
+        x_coords = torch.arange(self._config.image_size).view(1, -1)
         
         mask = self._create_shape_mask(
             shape_type, y_coords, x_coords, center_y, center_x, radius
@@ -77,7 +77,7 @@ class SyntheticGenerator:
         
         elif shape_type == ShapeType.SQUARE:
             return (torch.abs(y_coords - center_y) <= radius) & (
-                torch. abs(x_coords - center_x) <= radius
+                torch.abs(x_coords - center_x) <= radius
             )
         
         elif shape_type == ShapeType.DIAMOND:
@@ -134,7 +134,7 @@ class SyntheticGenerator:
             torch.rand(3, generator=self._generator) * 0.3
         ).view(3, 1, 1)
         
-        image = background_color. expand(
+        image = background_color.expand(
             3, self._config.image_size, self._config.image_size
         ).clone()
         
@@ -143,7 +143,7 @@ class SyntheticGenerator:
         ).item()
         
         for _ in range(num_shapes):
-            shape = self. generate_basic_shape()
+            shape = self.generate_basic_shape()
             
             offset_range = self._config.image_size // 5
             offset_y = torch.randint(
@@ -156,7 +156,7 @@ class SyntheticGenerator:
             if offset_y != 0 or offset_x != 0:
                 shape = torch.roll(shape, shifts=(offset_y, offset_x), dims=(1, 2))
             
-            mask = shape. sum(dim=0) > 0
+            mask = shape.sum(dim=0) > 0
             image[: , mask] = shape[: , mask]
         
         return torch.clamp(image, 0, 1)

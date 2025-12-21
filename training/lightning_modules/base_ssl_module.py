@@ -5,7 +5,7 @@ from typing import Any
 import pytorch_lightning as pl
 import torch
 from torch import Tensor
-from torch. optim import Optimizer
+from torch.optim import Optimizer
 
 from configs.base_config import BaseConfig
 
@@ -15,7 +15,7 @@ class BaseSSLModule(pl. LightningModule, ABC):
     def __init__(self, config: BaseConfig):
         super().__init__()
         
-        self. save_hyperparameters(config. to_dict())
+        self.save_hyperparameters(config.to_dict())
         self._config = config
     
     @abstractmethod

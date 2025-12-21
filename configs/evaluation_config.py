@@ -17,13 +17,13 @@ class FewShotConfig:
         if self.num_ways <= 0:
             raise ValueError("num_ways must be positive")
         
-        if any(shot <= 0 for shot in self. num_shots):
+        if any(shot <= 0 for shot in self.num_shots):
             raise ValueError("all num_shots must be positive")
         
         if self.num_queries_per_class <= 0:
             raise ValueError("num_queries_per_class must be positive")
         
-        if self. num_episodes <= 0:
+        if self.num_episodes <= 0:
             raise ValueError("num_episodes must be positive")
 
 
@@ -81,5 +81,5 @@ class EvaluationConfig:
         if self.adaptation_steps < 0:
             raise ValueError("adaptation_steps must be non-negative")
         
-        if self. adaptation_lr <= 0:
+        if self.adaptation_lr <= 0:
             raise ValueError("adaptation_lr must be positive")

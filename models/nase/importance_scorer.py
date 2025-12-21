@@ -26,6 +26,6 @@ class ImportanceScorer:
             else: 
                 importance = (param.data * param.grad).abs()
             
-            importance_scores[name] = importance. detach().cpu()
+            importance_scores[name] = importance.detach().cpu()
         
         return importance_scores

@@ -118,7 +118,7 @@ class BaselineResult:
     
     @property
     def flops_giga(self) -> float:
-        return self. flops / 1e9
+        return self.flops / 1e9
     
     @property
     def accuracy_per_flop(self) -> float:
@@ -129,7 +129,7 @@ class BaselineResult:
             "method_name":  self.method_name,
             "backbone": self.backbone,
             "num_params": self.num_params,
-            "params_millions": self. params_millions,
+            "params_millions": self.params_millions,
             "flops":  self.flops,
             "flops_giga": self.flops_giga,
             "one_shot_accuracy":  self.one_shot_accuracy,
@@ -153,7 +153,7 @@ class OursResult:
     
     @property
     def params_millions(self) -> float:
-        return self. num_params / 1e6
+        return self.num_params / 1e6
     
     @property
     def flops_giga(self) -> float:
@@ -161,7 +161,7 @@ class OursResult:
     
     @property
     def accuracy_per_flop(self) -> float:
-        return self.five_shot_ci.mean / self.flops_giga if self. flops_giga > 0 else 0.0
+        return self.five_shot_ci.mean / self.flops_giga if self.flops_giga > 0 else 0.0
 
 
 class BaselineComparison:
@@ -180,7 +180,7 @@ class BaselineComparison:
                 backbone=spec.backbone,
                 num_params=spec.num_params,
                 flops=spec.flops,
-                one_shot_accuracy=spec. one_shot_reported,
+                one_shot_accuracy=spec.one_shot_reported,
                 one_shot_margin=0.80,
                 five_shot_accuracy=spec.five_shot_reported,
                 five_shot_margin=0.65,
@@ -198,7 +198,7 @@ class BaselineComparison:
         from evaluation.evaluators.efficiency_evaluator import EfficiencyEvaluator
         
         efficiency_evaluator = EfficiencyEvaluator(model, device="cuda")
-        efficiency = efficiency_evaluator. evaluate()
+        efficiency = efficiency_evaluator.evaluate()
         
         few_shot_config = FewShotConfig()
         benchmark = BenchmarkProtocol(
@@ -226,7 +226,7 @@ class BaselineComparison:
             method_name=method_name,
             backbone="Evolved-CNN",
             num_params=efficiency.num_parameters,
-            flops=efficiency. flops,
+            flops=efficiency.flops,
             one_shot_ci=one_shot_ci,
             five_shot_ci=five_shot_ci,
         )
@@ -249,20 +249,20 @@ class BaselineComparison:
                 "backbone": baseline.backbone,
                 "params": f"{baseline.params_millions:.2f}M",
                 "flops": f"{baseline.flops_giga:.2f}G",
-                "one_shot": f"{baseline.one_shot_accuracy:.2f}±{baseline. one_shot_margin:.2f}",
-                "five_shot": f"{baseline.five_shot_accuracy:.2f}±{baseline.five_shot_margin:. 2f}",
-                "acc_per_flop": f"{baseline.accuracy_per_flop:. 2f}",
+                "one_shot": f"{baseline.one_shot_accuracy:.2f}±{baseline.one_shot_margin:.2f}",
+                "five_shot": f"{baseline.five_shot_accuracy:.2f}±{baseline.five_shot_margin:.2f}",
+                "acc_per_flop": f"{baseline.accuracy_per_flop:.2f}",
                 "is_ours": False,
             })
         
         if self._ours_result:
             all_results.append({
                 "name":  f"**{self._ours_result.method_name}**",
-                "backbone": self._ours_result. backbone,
+                "backbone": self._ours_result.backbone,
                 "params": f"**{self._ours_result.params_millions:.2f}M**",
-                "flops": f"**{self._ours_result. flops_giga:.2f}G**",
-                "one_shot": f"**{self._ours_result. one_shot_ci}**",
-                "five_shot": f"**{self._ours_result. five_shot_ci}**",
+                "flops": f"**{self._ours_result.flops_giga:.2f}G**",
+                "one_shot": f"**{self._ours_result.one_shot_ci}**",
+                "five_shot": f"**{self._ours_result.five_shot_ci}**",
                 "acc_per_flop": f"**{self._ours_result.accuracy_per_flop:.2f}**",
                 "is_ours": True,
             })
@@ -275,7 +275,7 @@ class BaselineComparison:
             )
             lines.append(line)
         
-        return "\n". join(lines)
+        return "\n".join(lines)
     
     def generate_latex_table(self) -> str:
         lines = [
@@ -293,7 +293,7 @@ class BaselineComparison:
             line = (
                 f"{baseline.method_name} & {baseline.backbone} & "
                 f"{baseline.params_millions:.2f}M & {baseline.flops_giga:.2f}G & "
-                f"{baseline. one_shot_accuracy:.2f}$\\pm${baseline. one_shot_margin:.2f} & "
+                f"{baseline.one_shot_accuracy:.2f}$\\pm${baseline.one_shot_margin:.2f} & "
                 f"{baseline.five_shot_accuracy:.2f}$\\pm${baseline.five_shot_margin:.2f} & "
                 f"{baseline.accuracy_per_flop:.2f} \\\\"
             )
@@ -307,9 +307,9 @@ class BaselineComparison:
                 f"{self._ours_result.backbone} & "
                 f"\\textbf{{{self._ours_result.params_millions:.2f}M}} & "
                 f"\\textbf{{{self._ours_result.flops_giga:.2f}G}} & "
-                f"\\textbf{{{self._ours_result.one_shot_ci. mean:.2f}$\\pm${self._ours_result.one_shot_ci.margin:.2f}}} & "
-                f"\\textbf{{{self._ours_result. five_shot_ci.mean:.2f}$\\pm${self._ours_result.five_shot_ci.margin:. 2f}}} & "
-                f"\\textbf{{{self._ours_result.accuracy_per_flop:. 2f}}} \\\\"
+                f"\\textbf{{{self._ours_result.one_shot_ci.mean:.2f}$\\pm${self._ours_result.one_shot_ci.margin:.2f}}} & "
+                f"\\textbf{{{self._ours_result.five_shot_ci.mean:.2f}$\\pm${self._ours_result.five_shot_ci.margin:.2f}}} & "
+                f"\\textbf{{{self._ours_result.accuracy_per_flop:.2f}}} \\\\"
             )
             lines.append(line)
         
@@ -336,8 +336,8 @@ class BaselineComparison:
             "baselines": [b.to_dict() for b in self._baseline_results],
             "ours":  {
                 "method_name": self._ours_result.method_name,
-                "backbone": self._ours_result. backbone,
-                "num_params": self._ours_result. num_params,
+                "backbone": self._ours_result.backbone,
+                "num_params": self._ours_result.num_params,
                 "flops":  self._ours_result.flops,
                 "one_shot_mean": self._ours_result.one_shot_ci.mean,
                 "one_shot_margin": self._ours_result.one_shot_ci.margin,
@@ -363,8 +363,8 @@ class BaselineComparison:
             one_shot_delta = self._ours_result.one_shot_ci.mean - baseline.one_shot_accuracy
             five_shot_delta = self._ours_result.five_shot_ci.mean - baseline.five_shot_accuracy
             
-            param_reduction = 1 - (self._ours_result.num_params / baseline. num_params)
-            flops_reduction = 1 - (self._ours_result. flops / baseline. flops)
+            param_reduction = 1 - (self._ours_result.num_params / baseline.num_params)
+            flops_reduction = 1 - (self._ours_result.flops / baseline.flops)
             
             improvements[f"{key}_1shot_delta"] = one_shot_delta
             improvements[f"{key}_5shot_delta"] = five_shot_delta

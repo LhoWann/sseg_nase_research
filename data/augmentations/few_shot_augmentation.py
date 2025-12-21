@@ -1,4 +1,4 @@
-import torch. nn as nn
+import torch.nn as nn
 from torch import Tensor
 from torchvision import transforms as T
 
@@ -17,7 +17,7 @@ class FewShotAugmentation(nn.Module):
         ]
         
         if self._normalize:
-            transform_list. append(
+            transform_list.append(
                 T.Normalize(
                     mean=(0.485, 0.456, 0.406),
                     std=(0.229, 0.224, 0.225),

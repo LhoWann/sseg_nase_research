@@ -4,7 +4,7 @@ from typing import Literal
 import torch
 from PIL import Image
 from torch import Tensor
-from torch.utils. data import Dataset
+from torch.utils.data import Dataset
 from torchvision import transforms
 
 
@@ -39,7 +39,7 @@ class MiniImageNetDataset(Dataset):
         transform_list = []
         
         if self._augment:
-            transform_list. extend([
+            transform_list.extend([
                 transforms.RandomResizedCrop(
                     self._image_size,
                     scale=(0.8, 1.0),
@@ -70,7 +70,7 @@ class MiniImageNetDataset(Dataset):
         if not split_dir.exists():
             raise FileNotFoundError(f"Directory not found: {split_dir}")
         
-        class_dirs = sorted([d for d in split_dir. iterdir() if d.is_dir()])
+        class_dirs = sorted([d for d in split_dir.iterdir() if d.is_dir()])
         
         for class_idx, class_dir in enumerate(class_dirs):
             class_name = class_dir.name
@@ -97,7 +97,7 @@ class MiniImageNetDataset(Dataset):
     
     @property
     def class_to_idx(self) -> dict[str, int]:
-        return self._class_to_idx. copy()
+        return self._class_to_idx.copy()
     
     def get_samples_by_class(self, class_idx: int) -> list[int]:
         return [

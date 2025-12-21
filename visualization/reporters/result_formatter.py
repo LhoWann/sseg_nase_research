@@ -21,7 +21,7 @@ class ResultFormatter:
         if num_params >= 1e6:
             return f"{num_params / 1e6:.2f}M"
         elif num_params >= 1e3:
-            return f"{num_params / 1e3:. 1f}K"
+            return f"{num_params / 1e3:.1f}K"
         else:
             return str(num_params)
 
@@ -40,7 +40,7 @@ class ResultFormatter:
 
     @staticmethod
     def format_percentage(value: float) -> str:
-        return f"{value:. 2f}%"
+        return f"{value:.2f}%"
 
     @staticmethod
     def format_time_ms(time_seconds: float) -> str:
@@ -63,7 +63,7 @@ class ResultFormatter:
             method_name=method_name,
             backbone=backbone,
             params_str=cls.format_params(num_params),
-            flops_str=cls. format_flops(flops),
+            flops_str=cls.format_flops(flops),
             one_shot_str=cls.format_accuracy(one_shot_mean, one_shot_margin),
             five_shot_str=cls.format_accuracy(five_shot_mean, five_shot_margin),
         )
@@ -90,7 +90,7 @@ class ResultExporter:
         filepath = self._output_dir / filename
 
         with open(filepath, "w") as f:
-            json. dump(data, f, indent=2)
+            json.dump(data, f, indent=2)
 
         return filepath
 

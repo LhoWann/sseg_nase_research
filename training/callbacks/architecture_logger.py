@@ -3,7 +3,7 @@ from pathlib import Path
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import Callback
 
-from training.lightning_modules. sseg_module import SSEGModule
+from training.lightning_modules.sseg_module import SSEGModule
 
 
 class ArchitectureLogger(Callback):
@@ -24,7 +24,7 @@ class ArchitectureLogger(Callback):
         
         architecture_summary = pl_module.backbone.get_architecture_summary()
         
-        log_entry = self._format_log_entry(trainer. current_epoch, architecture_summary)
+        log_entry = self._format_log_entry(trainer.current_epoch, architecture_summary)
         
         with open(self._architecture_log_file, "a") as f:
             f.write(log_entry + "\n")

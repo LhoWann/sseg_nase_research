@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
-import matplotlib. pyplot as plt
+import matplotlib.pyplot as plt
 import numpy as np
 
 from visualization.plotters.evolution_plotter import PlotStyle
@@ -21,9 +21,9 @@ class LossPlotter:
             "font.family": self._style.font_family,
             "font.size": self._style.font_size,
             "axes.titlesize":  self._style.title_size,
-            "axes.labelsize": self._style. font_size,
+            "axes.labelsize": self._style.font_size,
             "legend.fontsize": self._style.legend_size,
-            "axes. grid": True,
+            "axes.grid": True,
             "grid.alpha":  self._style.grid_alpha,
         })
 
@@ -48,7 +48,7 @@ class LossPlotter:
             epochs,
             distillation_loss,
             color="#A23B72",
-            linewidth=self._style. line_width,
+            linewidth=self._style.line_width,
             label="Distillation Loss",
         )
 
@@ -59,7 +59,7 @@ class LossPlotter:
 
             for i, boundary in enumerate(level_boundaries):
                 if i < len(level_colors):
-                    ax. axvspan(
+                    ax.axvspan(
                         prev_boundary,
                         boundary,
                         alpha=0.2,
@@ -88,7 +88,7 @@ class LossPlotter:
         fig.tight_layout()
 
         save_path = self._output_dir / f"training_losses.{self._style.save_format}"
-        fig. savefig(save_path, dpi=self._style. dpi, bbox_inches="tight")
+        fig.savefig(save_path, dpi=self._style.dpi, bbox_inches="tight")
         plt.close(fig)
 
         return save_path
@@ -152,7 +152,7 @@ class LossPlotter:
 
         colors = ["#2E86AB", "#A23B72", "#F18F01", "#C73E1D", "#6A4C93"]
 
-        for idx, (label, losses) in enumerate(loss_curves. items()):
+        for idx, (label, losses) in enumerate(loss_curves.items()):
             color = colors[idx % len(colors)]
             ax.plot(
                 epochs[:  len(losses)],
@@ -170,7 +170,7 @@ class LossPlotter:
         fig.tight_layout()
 
         save_path = self._output_dir / f"loss_comparison.{self._style.save_format}"
-        fig. savefig(save_path, dpi=self._style. dpi, bbox_inches="tight")
+        fig.savefig(save_path, dpi=self._style.dpi, bbox_inches="tight")
         plt.close(fig)
 
         return save_path

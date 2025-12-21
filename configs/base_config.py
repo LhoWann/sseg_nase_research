@@ -26,7 +26,7 @@ class PathConfig:
             self.outputs,
             self.checkpoints,
             self.logs,
-            self. results,
+            self.results,
         ]:
             path.mkdir(parents=True, exist_ok=True)
 

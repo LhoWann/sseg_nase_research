@@ -72,5 +72,5 @@ class PlateauDetector:
         )
     
     def reset(self) -> None:
-        self._ssl_loss_history. clear()
+        self._ssl_loss_history.clear()
         self._distillation_loss_history.clear()

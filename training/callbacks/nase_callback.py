@@ -23,7 +23,7 @@ class NASECallback(Callback):
         statistics = self._sparse_router.get_statistics()
         
         if statistics:
-            pl_module. log("nase/sparsity_ratio", statistics. sparsity_ratio)
+            pl_module.log("nase/sparsity_ratio", statistics.sparsity_ratio)
             pl_module.log(
                 "nase/active_positive_connections",
                 float(statistics.active_positive_connections),

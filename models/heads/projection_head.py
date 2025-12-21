@@ -29,7 +29,7 @@ class ProjectionHead(nn.Module):
             
             current_dim = self._config.hidden_dim
         
-        layers.append(nn.Linear(current_dim, self._config. output_dim))
+        layers.append(nn.Linear(current_dim, self._config.output_dim))
         
         return nn.Sequential(*layers)
     

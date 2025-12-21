@@ -10,16 +10,16 @@ import torch
 
 from configs.base_config import BaseConfig
 from configs.base_config import PathConfig
-from configs. hardware_config import HardwareConfig
+from configs.hardware_config import HardwareConfig
 from configs.hardware_config import RTX3060Config
 from configs.evaluation_config import EvaluationConfig
-from data.datamodules. curriculum_datamodule import CurriculumDataModule
+from data.datamodules.curriculum_datamodule import CurriculumDataModule
 from evaluation.evaluators.efficiency_evaluator import EfficiencyEvaluator
 from evaluation.evaluators.efficiency_evaluator import EfficiencyMetrics
 from evaluation.metrics.confidence_interval import ConfidenceInterval
 from evaluation.protocols.benchmark_protocol import BenchmarkProtocol
 from experiments.ablation_studies.ablation_configs import AblationConfig
-from experiments. ablation_studies. ablation_configs import AblationType
+from experiments.ablation_studies.ablation_configs import AblationType
 from experiments.ablation_studies.ablation_configs import create_ablation_configs
 from models.backbones.evolvable_cnn import EvolvableCNN
 from training.callbacks.evolution_callback import EvolutionCallback
@@ -62,7 +62,7 @@ class AblationResult:
             "few_shot_results":  [
                 {
                     "num_ways":  fs.num_ways,
-                    "num_shots": fs. num_shots,
+                    "num_shots": fs.num_shots,
                     "mean_accuracy": fs.mean_accuracy,
                     "std": fs.std,
                     "margin": fs.margin,
@@ -77,7 +77,7 @@ class AblationResult:
                 "flops":  self.efficiency_metrics.flops,
                 "flops_giga": self.efficiency_metrics.flops_giga,
                 "inference_time_ms": self.efficiency_metrics.inference_time_ms,
-                "memory_mb": self. efficiency_metrics.memory_mb,
+                "memory_mb": self.efficiency_metrics.memory_mb,
             },
             "training":  {
                 "training_time_seconds":  self.training_time_seconds,
@@ -112,7 +112,7 @@ class AblationRunner:
             data=self._data_root,
             outputs=self._output_dir / ablation_config.name,
             checkpoints=self._output_dir / ablation_config.name / "checkpoints",
-            logs=self._output_dir / ablation_config. name / "logs",
+            logs=self._output_dir / ablation_config.name / "logs",
             results=self._output_dir / ablation_config.name / "results",
         )
         
@@ -138,12 +138,12 @@ class AblationRunner:
     def _create_callbacks(self, ablation_config: AblationConfig) -> list[pl. Callback]:
         callbacks = []
         
-        if ablation_config. enable_sseg: 
+        if ablation_config.enable_sseg: 
             from configs.evolution_config import EvolutionConfig
             
             evolution_config = EvolutionConfig(
                 seed_network=ablation_config.seed_network,
-                growth=ablation_config. growth,
+                growth=ablation_config.growth,
                 nase=ablation_config.nase,
             )
             callbacks.append(EvolutionCallback(evolution_config))
@@ -187,12 +187,12 @@ class AblationRunner:
             logger=False,
         )
         
-        start_time = time. perf_counter()
+        start_time = time.perf_counter()
         
-        if ablation_config. ablation_type != AblationType. SEED_ONLY: 
+        if ablation_config.ablation_type != AblationType. SEED_ONLY: 
             trainer.fit(module, datamodule)
         
-        training_time = time. perf_counter() - start_time
+        training_time = time.perf_counter() - start_time
         
         num_mutations = 0
         for callback in callbacks:
@@ -211,7 +211,7 @@ class AblationRunner:
         )
         
         benchmark_result = benchmark.run_benchmark(
-            method_name=ablation_config. name,
+            method_name=ablation_config.name,
             dataset_name="MiniImageNet",
             data_root=self._data_root / "minimagenet",
         )
@@ -219,20 +219,20 @@ class AblationRunner:
         few_shot_results = [
             FewShotResult(
                 num_ways=fs.num_ways,
-                num_shots=fs. num_shots,
+                num_shots=fs.num_shots,
                 mean_accuracy=fs.confidence_interval.mean,
-                std=fs.confidence_interval. std,
+                std=fs.confidence_interval.std,
                 margin=fs.confidence_interval.margin,
                 ci_lower=fs.confidence_interval.lower,
-                ci_upper=fs.confidence_interval. upper,
+                ci_upper=fs.confidence_interval.upper,
             )
             for fs in benchmark_result.few_shot_results
         ]
         
         result = AblationResult(
             config_name=ablation_config.name,
-            ablation_type=ablation_config.ablation_type. name,
-            description=ablation_config. description,
+            ablation_type=ablation_config.ablation_type.name,
+            description=ablation_config.description,
             few_shot_results=few_shot_results,
             efficiency_metrics=benchmark_result.efficiency_metrics,
             training_time_seconds=training_time,
@@ -242,7 +242,7 @@ class AblationRunner:
             num_mutations=num_mutations,
         )
         
-        self._results. append(result)
+        self._results.append(result)
         
         return result
     
@@ -282,7 +282,7 @@ class AblationRunner:
         self._generate_summary_table()
     
     def _generate_summary_table(self) -> None:
-        table_path = self._output_dir / "ablation_summary. md"
+        table_path = self._output_dir / "ablation_summary.md"
         
         lines = [
             "# Ablation Study Results",
@@ -309,7 +309,7 @@ class AblationRunner:
                 if fs.num_shots == 1:
                     one_shot = f"{fs.mean_accuracy:.2f}±{fs.margin:.2f}"
                 elif fs.num_shots == 5:
-                    five_shot = f"{fs.mean_accuracy:.2f}±{fs.margin:. 2f}"
+                    five_shot = f"{fs.mean_accuracy:.2f}±{fs.margin:.2f}"
             
             params = f"{result.efficiency_metrics.params_millions:.2f}M"
             flops = f"{result.efficiency_metrics.flops_giga:.2f}G"
@@ -318,8 +318,8 @@ class AblationRunner:
             lines.append(line)
         
         with open(table_path, "w") as f:
-            f.write("\n". join(lines))
+            f.write("\n".join(lines))
     
     @property
     def results(self) -> list[AblationResult]:
-        return self._results. copy()
+        return self._results.copy()

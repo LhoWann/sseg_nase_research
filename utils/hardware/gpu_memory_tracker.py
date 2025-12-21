@@ -23,11 +23,11 @@ class MemorySnapshot:
         return {
             "timestamp": self.timestamp,
             "allocated_mb":  self.allocated_mb,
-            "reserved_mb": self. reserved_mb,
-            "max_allocated_mb": self. max_allocated_mb,
+            "reserved_mb": self.reserved_mb,
+            "max_allocated_mb": self.max_allocated_mb,
             "max_reserved_mb":  self.max_reserved_mb,
             "free_mb":  self.free_mb,
-            "total_mb": self. total_mb,
+            "total_mb": self.total_mb,
             "utilization_percent": self.utilization_percent,
         }
 
@@ -48,11 +48,11 @@ def get_gpu_info(device_id: int = 0) -> Optional[GPUInfo]:
     if device_id >= torch.cuda.device_count():
         return None
     
-    props = torch.cuda. get_device_properties(device_id)
+    props = torch.cuda.get_device_properties(device_id)
     
     return GPUInfo(
         device_id=device_id,
-        name=props. name,
+        name=props.name,
         total_memory_mb=props.total_memory / (1024 * 1024),
         compute_capability=(props.major, props.minor),
         multi_processor_count=props.multi_processor_count,
@@ -83,10 +83,10 @@ class GPUMemoryTracker:
         
         allocated = torch.cuda.memory_allocated(self._device_id) / (1024 * 1024)
         reserved = torch.cuda.memory_reserved(self._device_id) / (1024 * 1024)
-        max_allocated = torch. cuda.max_memory_allocated(self._device_id) / (1024 * 1024)
+        max_allocated = torch.cuda.max_memory_allocated(self._device_id) / (1024 * 1024)
         max_reserved = torch.cuda.max_memory_reserved(self._device_id) / (1024 * 1024)
         
-        total = torch.cuda. get_device_properties(self._device_id).total_memory / (1024 * 1024)
+        total = torch.cuda.get_device_properties(self._device_id).total_memory / (1024 * 1024)
         free = total - reserved
         utilization = (reserved / total) * 100 if total > 0 else 0
         
@@ -105,7 +105,7 @@ class GPUMemoryTracker:
             utilization_percent=utilization,
         )
         
-        self._snapshots. append(snapshot)
+        self._snapshots.append(snapshot)
         
         return snapshot
     
@@ -113,7 +113,7 @@ class GPUMemoryTracker:
         if not self._is_available:
             return 0.0, 0.0
         
-        allocated = torch.cuda. memory_allocated(self._device_id) / (1024 * 1024)
+        allocated = torch.cuda.memory_allocated(self._device_id) / (1024 * 1024)
         reserved = torch.cuda.memory_reserved(self._device_id) / (1024 * 1024)
         
         return allocated, reserved
@@ -122,7 +122,7 @@ class GPUMemoryTracker:
         if not self._is_available:
             return 0.0
         
-        reserved = torch.cuda. memory_reserved(self._device_id)
+        reserved = torch.cuda.memory_reserved(self._device_id)
         total = torch.cuda.get_device_properties(self._device_id).total_memory
         
         return (reserved / total) * 100 if total > 0 else 0.0
@@ -151,7 +151,7 @@ class GPUMemoryTracker:
         if not self._is_available:
             return 0.0
         
-        return torch. cuda.max_memory_allocated(self._device_id) / (1024 * 1024)
+        return torch.cuda.max_memory_allocated(self._device_id) / (1024 * 1024)
     
     def estimate_batch_size(
         self,
@@ -179,7 +179,7 @@ class GPUMemoryTracker:
         }
         
         with open(filepath, "w") as f:
-            json. dump(data, f, indent=2)
+            json.dump(data, f, indent=2)
     
     def get_summary(self) -> dict:
         if not self._snapshots:
@@ -200,4 +200,4 @@ class GPUMemoryTracker:
         }
     
     def clear_snapshots(self) -> None:
-        self._snapshots. clear()
+        self._snapshots.clear()

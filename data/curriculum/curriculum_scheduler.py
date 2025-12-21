@@ -31,7 +31,7 @@ class CurriculumScheduler:
     
     def reset(self) -> None:
         self._current_level = CurriculumLevel. BASIC
-        self._datasets. clear()
+        self._datasets.clear()
     
     @property
     def current_level(self) -> CurriculumLevel:

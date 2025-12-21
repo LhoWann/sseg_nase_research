@@ -13,11 +13,11 @@ from configs.hardware_config import get_hardware_config
 from data.benchmarks.minimagenet_dataset import MiniImageNetDataset
 from data.benchmarks.episode_sampler import EpisodeSampler
 from evaluation.evaluators.efficiency_evaluator import EfficiencyEvaluator
-from evaluation. evaluators.fewshot_evaluator import FewShotEvaluator
-from evaluation.protocols. benchmark_protocol import BenchmarkProtocol
+from evaluation.evaluators.fewshot_evaluator import FewShotEvaluator
+from evaluation.protocols.benchmark_protocol import BenchmarkProtocol
 from models.backbones.evolvable_cnn import EvolvableCNN
 from utils.io.checkpoint_manager import CheckpointManager
-from utils. logging.custom_logger import get_logger
+from utils.logging.custom_logger import get_logger
 from utils.logging.custom_logger import LogLevel
 from utils.reproducibility.seed_everything import seed_everything
 from visualization.reporters.result_formatter import ResultFormatter
@@ -88,7 +88,7 @@ def load_model(checkpoint_path: Path, device: str) -> EvolvableCNN:
     from configs.evolution_config import EvolutionConfig
     from configs.evolution_config import SeedNetworkConfig
     
-    architecture = checkpoint. get("architecture_summary", {})
+    architecture = checkpoint.get("architecture_summary", {})
     
     seed_config = SeedNetworkConfig(
         initial_channels=16,
@@ -117,7 +117,7 @@ def evaluate(args: argparse. Namespace) -> dict:
     
     args.output_dir.mkdir(parents=True, exist_ok=True)
     
-    seed_everything(args. seed, deterministic=True)
+    seed_everything(args.seed, deterministic=True)
     
     logger.info(f"Loading model from: {args.checkpoint}")
     model = load_model(args.checkpoint, args.device)
@@ -145,7 +145,7 @@ def evaluate(args: argparse. Namespace) -> dict:
     efficiency_evaluator = EfficiencyEvaluator(model=model, device=args.device)
     efficiency_metrics = efficiency_evaluator.evaluate()
     
-    logger.info(f"Parameters: {efficiency_metrics. params_millions:.2f}M")
+    logger.info(f"Parameters: {efficiency_metrics.params_millions:.2f}M")
     logger.info(f"FLOPs: {efficiency_metrics.flops_giga:.2f}G")
     logger.info(f"Inference Time: {efficiency_metrics.inference_time_ms:.2f}ms")
     
@@ -153,7 +153,7 @@ def evaluate(args: argparse. Namespace) -> dict:
         "checkpoint": str(args.checkpoint),
         "architecture": architecture,
         "efficiency":  {
-            "num_parameters": efficiency_metrics. num_parameters,
+            "num_parameters": efficiency_metrics.num_parameters,
             "params_millions": efficiency_metrics.params_millions,
             "flops":  efficiency_metrics.flops,
             "flops_giga": efficiency_metrics.flops_giga,
@@ -195,17 +195,17 @@ def evaluate(args: argparse. Namespace) -> dict:
             "std":  ci.std,
             "margin": ci.margin,
             "ci_lower": ci.lower,
-            "ci_upper": ci. upper,
-            "num_episodes": args. num_episodes,
+            "ci_upper": ci.upper,
+            "num_episodes": args.num_episodes,
         })
     
     results_path = args.output_dir / "evaluation_results.json"
     with open(results_path, "w") as f:
         json.dump(results, f, indent=2)
     
-    logger. info(f"Results saved to: {results_path}")
+    logger.info(f"Results saved to: {results_path}")
     
-    generate_summary_report(results, args. output_dir)
+    generate_summary_report(results, args.output_dir)
     
     return results
 
@@ -226,7 +226,7 @@ def generate_summary_report(results:  dict, output_dir: Path) -> None:
         "",
         f"- Parameters:  {results['efficiency']['params_millions']:.2f}M",
         f"- FLOPs: {results['efficiency']['flops_giga']:.2f}G",
-        f"- Inference Time: {results['efficiency']['inference_time_ms']:. 2f}ms",
+        f"- Inference Time: {results['efficiency']['inference_time_ms']:.2f}ms",
         "",
         "## Few-Shot Performance",
         "",
@@ -248,7 +248,7 @@ def generate_summary_report(results:  dict, output_dir: Path) -> None:
     
     report_path = output_dir / "evaluation_summary.md"
     with open(report_path, "w") as f:
-        f. write("\n".join(lines))
+        f.write("\n".join(lines))
 
 
 def main() -> None:

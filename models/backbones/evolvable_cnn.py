@@ -4,9 +4,9 @@ import torch
 import torch.nn as nn
 from torch import Tensor
 
-from configs. evolution_config import EvolutionConfig
+from configs.evolution_config import EvolutionConfig
 from configs.evolution_config import SeedNetworkConfig
-from models. backbones.conv_block import ConvBlock
+from models.backbones.conv_block import ConvBlock
 from models.backbones.seed_network import SeedNetwork
 
 
@@ -26,10 +26,10 @@ class EvolvableCNN(nn.Module):
         self._blocks = seed._blocks
         self._channel_sizes = seed._channel_sizes
         
-        self. global_pool = nn.AdaptiveAvgPool2d(1)
+        self.global_pool = nn.AdaptiveAvgPool2d(1)
     
     def grow(self, out_channels: Optional[int] = None) -> bool:
-        if len(self._blocks) >= self._evolution_config.growth. max_blocks:
+        if len(self._blocks) >= self._evolution_config.growth.max_blocks:
             return False
         
         in_channels = self._channel_sizes[-1]
@@ -95,13 +95,13 @@ class EvolvableCNN(nn.Module):
         )
         
         with torch.no_grad():
-            new_block.conv.weight[:old_channels] = old_block. conv.weight
+            new_block.conv.weight[:old_channels] = old_block.conv.weight
             
             if self._seed_config.use_batch_norm:
                 new_block.bn.weight[:old_channels] = old_block.bn.weight
                 new_block.bn.bias[: old_channels] = old_block.bn.bias
                 new_block.bn.running_mean[:old_channels] = old_block.bn.running_mean
-                new_block.bn. running_var[:old_channels] = old_block.bn.running_var
+                new_block.bn.running_var[:old_channels] = old_block.bn.running_var
         
         self._blocks[block_idx] = new_block
         self._channel_sizes[block_idx] = new_channels
@@ -132,7 +132,7 @@ class EvolvableCNN(nn.Module):
             new_conv.weight[:, :old_in_channels] = old_conv.weight
             
             if old_conv.bias is not None:
-                new_conv.bias. copy_(old_conv.bias)
+                new_conv.bias.copy_(old_conv.bias)
         
         next_block.conv = new_conv
     

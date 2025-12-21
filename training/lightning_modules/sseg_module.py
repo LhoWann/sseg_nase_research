@@ -2,14 +2,14 @@ from typing import Any
 from typing import Optional
 
 import torch
-import torch.nn. functional as F
+import torch.nn.functional as F
 from torch import Tensor
 
 from configs.base_config import BaseConfig
-from data.augmentations. ssl_augmentation import SSLAugmentation
+from data.augmentations.ssl_augmentation import SSLAugmentation
 from models.backbones.evolvable_cnn import EvolvableCNN
 from models.heads.projection_head import ProjectionHead
-from models.ssl. ema_teacher import EMATeacher
+from models.ssl.ema_teacher import EMATeacher
 from models.ssl.ssl_losses import CombinedSSLLoss
 from training.lightning_modules.base_ssl_module import BaseSSLModule
 
@@ -20,7 +20,7 @@ class SSEGModule(BaseSSLModule):
         super().__init__(config)
         
         self._backbone = EvolvableCNN(
-            seed_config=config.evolution. seed_network,
+            seed_config=config.evolution.seed_network,
             evolution_config=config.evolution,
         )
         
@@ -36,7 +36,7 @@ class SSEGModule(BaseSSLModule):
         )
         
         self._ssl_loss = CombinedSSLLoss(
-            temperature=config.ssl.contrastive. temperature,
+            temperature=config.ssl.contrastive.temperature,
             distillation_weight=config.ssl.distillation.distillation_weight,
             distillation_type=config.ssl.distillation.distillation_loss,
         )
@@ -53,7 +53,7 @@ class SSEGModule(BaseSSLModule):
     def _init_teacher(self) -> None:
         self._teacher = EMATeacher(
             student=self._backbone,
-            decay=self._config.ssl.distillation. ema_decay,
+            decay=self._config.ssl.distillation.ema_decay,
         )
     
     def forward(self, x: Tensor) -> Tensor:
@@ -69,7 +69,7 @@ class SSEGModule(BaseSSLModule):
             view2_list.append(view2)
         
         view1 = torch.stack(view1_list)
-        view2 = torch. stack(view2_list)
+        view2 = torch.stack(view2_list)
         
         features1 = self._backbone(view1)
         features2 = self._backbone(view2)
@@ -84,7 +84,7 @@ class SSEGModule(BaseSSLModule):
             z1, z2, features1, teacher_features
         )
         
-        if self. current_epoch % self._config.ssl.distillation.update_interval == 0:
+        if self.current_epoch % self._config.ssl.distillation.update_interval == 0:
             self._teacher.update(self._backbone)
         
         self._ssl_loss_history.append(loss_components["contrastive"])
@@ -147,14 +147,14 @@ class SSEGModule(BaseSSLModule):
         else:
             return False
         
-        if result. success:
+        if result.success:
             self._init_projection_head()
             self._teacher.synchronize_architecture(self._backbone)
         
         return result.success
     
     def get_loss_history(self) -> tuple[list[float], list[float]]: 
-        return self._ssl_loss_history. copy(), self._distillation_loss_history.copy()
+        return self._ssl_loss_history.copy(), self._distillation_loss_history.copy()
     
     def clear_loss_history(self) -> None:
         self._ssl_loss_history.clear()

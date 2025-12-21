@@ -30,16 +30,16 @@ class EvolutionPlotter:
         self._apply_style()
 
     def _apply_style(self) -> None:
-        plt.rcParams. update({
+        plt.rcParams.update({
             "font.family": self._style.font_family,
             "font.size": self._style.font_size,
             "axes.titlesize": self._style.title_size,
-            "axes. labelsize": self._style.font_size,
+            "axes.labelsize": self._style.font_size,
             "legend.fontsize": self._style.legend_size,
             "axes.linewidth": 1.0,
             "axes.grid": True,
-            "grid. alpha": self._style.grid_alpha,
-            "figure. dpi": self._style.dpi,
+            "grid.alpha": self._style.grid_alpha,
+            "figure.dpi": self._style.dpi,
         })
 
     def plot_architecture_trajectory(
@@ -50,7 +50,7 @@ class EvolutionPlotter:
         mutation_epochs: list[int],
         level_boundaries: Optional[list[int]] = None,
     ) -> Path:
-        fig, ax1 = plt.subplots(figsize=self._style. figure_size)
+        fig, ax1 = plt.subplots(figsize=self._style.figure_size)
 
         color_params = "#2E86AB"
         ax1.set_xlabel("Epoch")
@@ -113,7 +113,7 @@ class EvolutionPlotter:
 
         fig.tight_layout()
 
-        save_path = self._output_dir / f"evolution_trajectory. {self._style. save_format}"
+        save_path = self._output_dir / f"evolution_trajectory. {self._style.save_format}"
         fig.savefig(save_path, dpi=self._style.dpi, bbox_inches="tight")
         plt.close(fig)
 
@@ -127,7 +127,7 @@ class EvolutionPlotter:
         fig, ax = plt.subplots(figsize=self._style.figure_size)
 
         max_blocks = max(len(channels) for channels in channel_history)
-        colors = plt.cm.viridis(np. linspace(0, 1, max_blocks))
+        colors = plt.cm.viridis(np.linspace(0, 1, max_blocks))
 
         for block_idx in range(max_blocks):
             block_channels = []
@@ -135,15 +135,15 @@ class EvolutionPlotter:
 
             for epoch_idx, channels in enumerate(channel_history):
                 if block_idx < len(channels):
-                    block_channels. append(channels[block_idx])
-                    block_epochs. append(epochs[epoch_idx])
+                    block_channels.append(channels[block_idx])
+                    block_epochs.append(epochs[epoch_idx])
 
             if block_channels: 
                 ax.plot(
                     block_epochs,
                     block_channels,
                     color=colors[block_idx],
-                    linewidth=self._style. line_width,
+                    linewidth=self._style.line_width,
                     label=f"Block {block_idx + 1}",
                     marker="s",
                     markersize=self._style.marker_size / 2,
@@ -158,7 +158,7 @@ class EvolutionPlotter:
         fig.tight_layout()
 
         save_path = self._output_dir / f"channel_progression.{self._style.save_format}"
-        fig. savefig(save_path, dpi=self._style. dpi, bbox_inches="tight")
+        fig.savefig(save_path, dpi=self._style.dpi, bbox_inches="tight")
         plt.close(fig)
 
         return save_path
@@ -171,7 +171,7 @@ class EvolutionPlotter:
         fig, ax = plt.subplots(figsize=(8, 6))
 
         colors = ["#2E86AB", "#A23B72", "#F18F01", "#C73E1D"]
-        bars = ax. bar(
+        bars = ax.bar(
             mutation_types,
             mutation_counts,
             color=colors[:  len(mutation_types)],
@@ -183,7 +183,7 @@ class EvolutionPlotter:
             height = bar.get_height()
             ax.annotate(
                 f"{count}",
-                xy=(bar. get_x() + bar.get_width() / 2, height),
+                xy=(bar.get_x() + bar.get_width() / 2, height),
                 xytext=(0, 3),
                 textcoords="offset points",
                 ha="center",
@@ -197,7 +197,7 @@ class EvolutionPlotter:
 
         fig.tight_layout()
 
-        save_path = self._output_dir / f"mutation_distribution. {self._style. save_format}"
+        save_path = self._output_dir / f"mutation_distribution. {self._style.save_format}"
         fig.savefig(save_path, dpi=self._style.dpi, bbox_inches="tight")
         plt.close(fig)
 
