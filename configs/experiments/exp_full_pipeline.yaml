@@ -1,0 +1,110 @@
+experiment_name: sseg_nase_full_pipeline
+seed: 42
+debug_mode: false
+
+hardware:
+  name: rtx3060
+
+curriculum:
+  image_size: 84
+  transition_strategy: gradual
+  gradual_mixing_ratio: 0.2
+  
+  level_specs:
+    basic: 
+      num_samples: 5000
+    texture:
+      num_samples: 10000
+    object: 
+      num_samples: 20000
+    adversarial:
+      num_samples: 10000
+
+evolution:
+  seed_network: 
+    architecture: cnn
+    initial_channels: 16
+    initial_blocks: 3
+    kernel_size: 3
+    activation: relu
+  
+  growth: 
+    max_blocks: 12
+    max_channels: 256
+    channel_expansion_ratio:  1.5
+    plateau_window_size: 10
+    plateau_threshold: 0.0001
+    distillation_gap_threshold: 0.1
+    sensitivity_method: taylor
+  
+  nase: 
+    sparsity_ratio: 0.3
+    pruning_interval_epochs: 10
+    importance_metric: taylor
+    min_channels_per_layer: 8
+    use_complementary_masks: true
+  
+  fitness:
+    alpha_complexity_penalty: 0.1
+    target_flops_giga: 1.0
+    target_params_million: 1.0
+
+ssl:
+  augmentation:
+    crop_scale_min: 0.2
+    crop_scale_max: 1.0
+    horizontal_flip_prob: 0.5
+    color_jitter_strength: 0.4
+    grayscale_prob: 0.2
+    gaussian_blur_prob: 0.5
+  
+  contrastive:
+    temperature: 0.5
+    loss_type: ntxent
+    normalize_features: true
+  
+  distillation:
+    ema_decay: 0.999
+    distillation_weight:  0.5
+    distillation_loss: mse
+    update_interval: 1
+  
+  projection:
+    hidden_dim: 256
+    output_dim: 128
+    num_layers: 2
+    use_batch_norm: true
+
+training:
+  max_epochs_per_level: 100
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  optimizer: adamw
+  scheduler: cosine
+  warmup_epochs: 5
+  min_lr: 0.000001
+
+evaluation:
+  few_shot:
+    num_ways:  5
+    num_shots:  [1, 5]
+    num_queries_per_class:  15
+    num_episodes:  600
+    distance_metric:  cosine
+    normalize_features: true
+  
+  metrics:
+    confidence_level: 0.95
+    compute_per_class_accuracy: true
+    save_predictions: false
+  
+  datasets:
+    - name: minimagenet
+      root_dir: ./datasets/minimagenet
+      split: test
+    - name: cifar_fs
+      root_dir: ./datasets/cifar_fs
+      split:  test
+  
+  adaptation_method: prototype
+  adaptation_steps: 0

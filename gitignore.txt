@@ -1,0 +1,31 @@
+__pycache__/
+*.py[cod]
+*$py. class
+*.so
+.Python
+env/
+venv/
+. venv
+*. egg-info/
+dist/
+build/
+
+datasets/minimagenet/
+datasets/cifar_fs/
+datasets/synthetic_curriculum/
+
+outputs/checkpoints/
+outputs/logs/
+*. ckpt
+*.pth
+
+.ipynb_checkpoints/
+*. swp
+*.swo
+
+.DS_Store
+.vscode/
+.idea/
+
+wandb/
+mlruns/
