@@ -4,9 +4,9 @@ import sys
 
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
-from pytorch_lightning. callbacks import LearningRateMonitor
-from pytorch_lightning. callbacks import ModelCheckpoint
-from pytorch_lightning. callbacks import RichProgressBar
+from pytorch_lightning.callbacks import LearningRateMonitor
+from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks import RichProgressBar
 from pytorch_lightning.loggers import TensorBoardLogger
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -16,18 +16,18 @@ from configs.base_config import PathConfig
 from configs.curriculum_config import CurriculumConfig
 from configs.evaluation_config import EvaluationConfig
 from configs.evolution_config import EvolutionConfig
-from configs. hardware_config import get_hardware_config
+from configs.hardware_config import get_hardware_config
 from configs.ssl_config import SSLConfig
-from data.datamodules. curriculum_datamodule import CurriculumDataModule
+from data.datamodules.curriculum_datamodule import CurriculumDataModule
 from training.callbacks.architecture_logger import ArchitectureLogger
-from training. callbacks.curriculum_callback import CurriculumCallback
-from training. callbacks.evolution_callback import EvolutionCallback
+from training.callbacks.curriculum_callback import CurriculumCallback
+from training.callbacks.evolution_callback import EvolutionCallback
 from training.callbacks.nase_callback import NASECallback
 from training.lightning_modules.sseg_module import SSEGModule
-from utils.io. checkpoint_manager import CheckpointManager
+from utils.io.checkpoint_manager import CheckpointManager
 from utils.io.config_loader import ConfigLoader
-from utils.logging. custom_logger import get_logger
-from utils.logging. custom_logger import LogLevel
+from utils.logging.custom_logger import get_logger
+from utils.logging.custom_logger import LogLevel
 from utils.reproducibility.seed_everything import seed_everything
 
 
@@ -96,11 +96,11 @@ def parse_arguments() -> argparse. Namespace:
 
 def create_config(args:  argparse.Namespace) -> BaseConfig:
     if args.config and args.config.exists():
-        config_dict = ConfigLoader. load(args.config)
+        config_dict = ConfigLoader.load(args.config)
         experiment_name = config_dict.get("experiment_name", args.experiment_name)
-        seed = config_dict. get("seed", args.seed)
+        seed = config_dict.get("seed", args.seed)
     else:
-        experiment_name = args. experiment_name
+        experiment_name = args.experiment_name
         seed = args.seed
     
     paths = PathConfig(
@@ -130,14 +130,14 @@ def create_config(args:  argparse.Namespace) -> BaseConfig:
 def create_callbacks(config: BaseConfig) -> list[pl.Callback]: 
     callbacks = [
         EvolutionCallback(config.evolution),
-        NASECallback(config.evolution. nase),
+        NASECallback(config.evolution.nase),
         CurriculumCallback(),
         ArchitectureLogger(
             log_dir=config.paths.logs,
             log_interval=10,
         ),
         ModelCheckpoint(
-            dirpath=config. paths.checkpoints,
+            dirpath=config.paths.checkpoints,
             filename="sseg-{epoch:03d}-{train/total_loss:.4f}",
             save_top_k=3,
             monitor="train/total_loss",
@@ -167,18 +167,18 @@ def train(config: BaseConfig, args: argparse. Namespace) -> SSEGModule:
     logger = get_logger(
         name="train_sseg",
         level=LogLevel.DEBUG if args.debug else LogLevel.INFO,
-        log_file=config.paths. logs / "training.log",
+        log_file=config.paths.logs / "training.log",
     )
     
     logger.info(f"Starting experiment: {config.experiment_name}")
     logger.info(f"Hardware profile: {args.hardware}")
     logger.info(f"Seed: {config.seed}")
     
-    seed_everything(config. seed, deterministic=True)
+    seed_everything(config.seed, deterministic=True)
     
     datamodule = CurriculumDataModule(
-        curriculum_config=config. curriculum,
-        hardware_config=config. hardware,
+        curriculum_config=config.curriculum,
+        hardware_config=config.hardware,
         seed=config.seed,
     )
     
@@ -187,7 +187,7 @@ def train(config: BaseConfig, args: argparse. Namespace) -> SSEGModule:
     logger.log_architecture(
         num_blocks=module.backbone.num_blocks,
         num_params=sum(p.numel() for p in module.backbone.parameters()),
-        feature_dim=module. backbone.feature_dim,
+        feature_dim=module.backbone.feature_dim,
     )
     
     callbacks = create_callbacks(config)
@@ -198,10 +198,10 @@ def train(config: BaseConfig, args: argparse. Namespace) -> SSEGModule:
     trainer = pl.Trainer(
         accelerator=config.hardware.accelerator,
         devices=config.hardware.devices,
-        precision=config.hardware. precision,
+        precision=config.hardware.precision,
         max_epochs=max_epochs_total,
         accumulate_grad_batches=config.hardware.gradient_accumulation_steps,
-        gradient_clip_val=config.hardware. gradient_clip_val,
+        gradient_clip_val=config.hardware.gradient_clip_val,
         callbacks=callbacks,
         logger=tb_logger,
         enable_progress_bar=True,
@@ -217,8 +217,8 @@ def train(config: BaseConfig, args: argparse. Namespace) -> SSEGModule:
     
     final_checkpoint_path = config.paths.checkpoints / "final_model.pt"
     checkpoint_manager = CheckpointManager(
-        checkpoint_dir=config.paths. checkpoints,
-        experiment_name=config. experiment_name,
+        checkpoint_dir=config.paths.checkpoints,
+        experiment_name=config.experiment_name,
     )
     
     evolution_callback = None
@@ -236,11 +236,11 @@ def train(config: BaseConfig, args: argparse. Namespace) -> SSEGModule:
                 "mutation_type": m.mutation_type,
                 "target_layer": m.target_layer,
                 "num_blocks_before": m.num_blocks_before,
-                "num_blocks_after": m. num_blocks_after,
+                "num_blocks_after": m.num_blocks_after,
                 "num_params_before":  m.num_params_before,
                 "num_params_after": m.num_params_after,
             }
-            for m in evolution_callback. architecture_tracker.mutation_history
+            for m in evolution_callback.architecture_tracker.mutation_history
         ]
     
     from torch.optim import AdamW
@@ -250,7 +250,7 @@ def train(config: BaseConfig, args: argparse. Namespace) -> SSEGModule:
     final_ssl_loss = ssl_history[-1] if ssl_history else 0.0
     
     checkpoint_manager.save(
-        model=module. backbone,
+        model=module.backbone,
         optimizer=optimizer,
         epoch=trainer.current_epoch,
         curriculum_level=datamodule.current_level,
@@ -262,8 +262,8 @@ def train(config: BaseConfig, args: argparse. Namespace) -> SSEGModule:
     logger.info("Training completed successfully")
     logger.log_architecture(
         num_blocks=module.backbone.num_blocks,
-        num_params=sum(p. numel() for p in module.backbone. parameters()),
-        feature_dim=module. backbone.feature_dim,
+        num_params=sum(p.numel() for p in module.backbone.parameters()),
+        feature_dim=module.backbone.feature_dim,
     )
     
     return module

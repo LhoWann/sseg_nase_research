@@ -13,14 +13,14 @@ T = TypeVar("T")
 
 class ConfigLoader:
     
-    SUPPORTED_EXTENSIONS = {".yaml", ". yml", ".json"}
+    SUPPORTED_EXTENSIONS = {".yaml", ".yml", ".json"}
     
     @classmethod
     def load(cls, filepath: Path) -> dict[str, Any]: 
         if not filepath.exists():
             raise FileNotFoundError(f"Config file not found:  {filepath}")
         
-        suffix = filepath.suffix. lower()
+        suffix = filepath.suffix.lower()
         
         if suffix not in cls.SUPPORTED_EXTENSIONS: 
             raise ValueError(
@@ -40,7 +40,7 @@ class ConfigLoader:
     def save(cls, config:  dict[str, Any], filepath: Path) -> None:
         filepath.parent.mkdir(parents=True, exist_ok=True)
         
-        suffix = filepath.suffix. lower()
+        suffix = filepath.suffix.lower()
         
         if suffix not in cls.SUPPORTED_EXTENSIONS: 
             raise ValueError(
@@ -112,7 +112,7 @@ class ConfigLoader:
         key_path: str,
         default: Optional[Any] = None,
     ) -> Any:
-        parts = key_path. split(".")
+        parts = key_path.split(".")
         current = config
         
         for part in parts:

@@ -29,4 +29,4 @@ class CurriculumCallback(Callback):
     
     @property
     def level_transition_epochs(self) -> list[int]:
-        return self._level_transition_epochs. copy()
+        return self._level_transition_epochs.copy()

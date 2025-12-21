@@ -47,17 +47,17 @@ class EvolutionCallback(Callback):
     def _trigger_evolution(
         self, trainer: pl. Trainer, pl_module: SSEGModule, plateau_status
     ) -> None:
-        mutation_selector = MutationSelector(pl_module. backbone, self._config)
+        mutation_selector = MutationSelector(pl_module.backbone, self._config)
         
         sensitivities = mutation_selector.compute_layer_sensitivities()
-        mutation_type, target_idx = mutation_selector. select_mutation(sensitivities)
+        mutation_type, target_idx = mutation_selector.select_mutation(sensitivities)
         
-        if mutation_type. name == "NONE":
+        if mutation_type.name == "NONE":
             return
         
         old_summary = pl_module.backbone.get_architecture_summary()
         
-        success = pl_module.evolve_network(mutation_type.name. lower(), target_idx)
+        success = pl_module.evolve_network(mutation_type.name.lower(), target_idx)
         
         if success:
             new_summary = pl_module.backbone.get_architecture_summary()

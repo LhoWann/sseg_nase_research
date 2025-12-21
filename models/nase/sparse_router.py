@@ -32,7 +32,7 @@ class SparseRouter:
         importance_scores = self._importance_scorer.compute_importance(model)
         
         self._positive_masks, self._negative_masks = (
-            self._mask_generator. generate_complementary_masks(importance_scores)
+            self._mask_generator.generate_complementary_masks(importance_scores)
         )
     
     def apply_sparse_forward(
@@ -45,9 +45,9 @@ class SparseRouter:
         
         original_params = {}
         
-        for name, param in model. named_parameters():
+        for name, param in model.named_parameters():
             if name in masks:
-                original_params[name] = param.data. clone()
+                original_params[name] = param.data.clone()
                 mask_device = masks[name].to(param.device)
                 param.data = param.data * mask_device
         
@@ -77,5 +77,5 @@ class SparseRouter:
         with torch.no_grad():
             for name, param in model.named_parameters():
                 if name in self._positive_masks:
-                    mask = self._positive_masks[name]. to(param.device)
+                    mask = self._positive_masks[name].to(param.device)
                     param.data = param.data * mask

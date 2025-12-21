@@ -1,7 +1,7 @@
 from typing import Literal
 
 from torch.optim import Optimizer
-from torch.optim. lr_scheduler import CosineAnnealingLR
+from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.optim.lr_scheduler import StepLR
 from torch.optim.lr_scheduler import LambdaLR
 

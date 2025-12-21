@@ -93,12 +93,12 @@ class EvolvableCNN(nn.Module):
         self._blocks = nn. ModuleList()
         self._channel_sizes = []
         self._build_seed_network()
-        self. global_pool = nn.AdaptiveAvgPool2d(1)
+        self.global_pool = nn.AdaptiveAvgPool2d(1)
     
     def _build_seed_network(self) -> None:
         in_ch = 3
-        out_ch = self._seed_config. initial_channels
-        for _ in range(self._seed_config. initial_blocks):
+        out_ch = self._seed_config.initial_channels
+        for _ in range(self._seed_config.initial_blocks):
             self._blocks.append(ConvBlock(in_ch, out_ch))
             self._channel_sizes.append(out_ch)
             in_ch = out_ch
@@ -109,11 +109,11 @@ class EvolvableCNN(nn.Module):
             return False
         in_ch = self._channel_sizes[-1]
         out_ch = min(
-            int(in_ch * self._evolution_config. growth.channel_expansion_ratio),
+            int(in_ch * self._evolution_config.growth.channel_expansion_ratio),
             self._evolution_config.growth.max_channels,
         )
         self._blocks.append(ConvBlock(in_ch, out_ch))
-        self._channel_sizes. append(out_ch)
+        self._channel_sizes.append(out_ch)
         return True
     
     def widen(self, block_idx: int) -> bool:
@@ -122,7 +122,7 @@ class EvolvableCNN(nn.Module):
         old_ch = self._channel_sizes[block_idx]
         new_ch = min(
             int(old_ch * self._evolution_config.growth.channel_expansion_ratio),
-            self._evolution_config. growth.max_channels,
+            self._evolution_config.growth.max_channels,
         )
         if new_ch == old_ch:
             return False
@@ -148,7 +148,7 @@ class EvolvableCNN(nn.Module):
     
     def get_architecture_summary(self) -> dict:
         return {
-            "num_blocks": self. num_blocks,
+            "num_blocks": self.num_blocks,
             "channel_progression": self._channel_sizes,
             "feature_dim": self.feature_dim,
             "total_params": sum(p.numel() for p in self.parameters()),
@@ -162,8 +162,8 @@ class EvolutionOperators:
         self._config = config
     
     def apply_grow(self, out_channels: Optional[int] = None) -> MutationResult: 
-        old_summary = self._model. get_architecture_summary()
-        success = self._model. grow()
+        old_summary = self._model.get_architecture_summary()
+        success = self._model.grow()
         new_summary = self._model.get_architecture_summary()
         
         return MutationResult(
@@ -192,13 +192,13 @@ class EvolutionOperators:
         )
     
     def can_grow(self) -> bool:
-        return self._model. num_blocks < self._config.growth. max_blocks
+        return self._model.num_blocks < self._config.growth.max_blocks
     
     def can_widen(self, block_idx: int) -> bool:
         if block_idx >= self._model.num_blocks:
             return False
-        current_channels = self._model. channel_sizes[block_idx]
-        return current_channels < self._config.growth. max_channels
+        current_channels = self._model.channel_sizes[block_idx]
+        return current_channels < self._config.growth.max_channels
 
 
 @dataclass(frozen=True)
@@ -223,7 +223,7 @@ class MutationSelector:
             current_channels = self._model.channel_sizes[idx]
             can_widen = current_channels < self._config.growth.max_channels
             
-            sensitivities. append(
+            sensitivities.append(
                 LayerSensitivity(
                     layer_idx=idx,
                     sensitivity_score=sensitivity_score,
@@ -239,7 +239,7 @@ class MutationSelector:
         param_count = 0
         
         for param in block.parameters():
-            if param. grad is None:
+            if param.grad is None:
                 continue
             sensitivity = (param.data * param.grad).abs().sum().item()
             total_sensitivity += sensitivity
@@ -316,4 +316,160 @@ class ArchitectureTracker:
                 {
                     "epoch": m.epoch,
                     "level": m.level,
-                    "mutation_
+                    "mutation_type": m.mutation_type,
+                    "target_layer": m.target_layer,
+                    "num_blocks_before": m.num_blocks_before,
+                    "num_blocks_after": m.num_blocks_after,
+                    "num_params_before": m.num_params_before,
+                    "num_params_after": m.num_params_after,
+                    "ssl_loss_before": m.ssl_loss_before,
+                }
+                for m in self.mutation_history
+            ],
+            "architecture_snapshots": self.architecture_snapshots,
+        }
+        
+        with open(filepath, "w") as f:
+            json.dump(data, f, indent=2)
+
+
+class TestEvolutionOperators:
+    
+    @pytest.fixture
+    def seed_config(self) -> SeedNetworkConfig:
+        return SeedNetworkConfig(
+            initial_channels=16,
+            initial_blocks=3,
+        )
+    
+    @pytest.fixture
+    def evolution_config(self, seed_config: SeedNetworkConfig) -> EvolutionConfig:
+        growth_config = GrowthConfig(
+            max_blocks=8,
+            max_channels=128,
+        )
+        return EvolutionConfig(seed_network=seed_config, growth=growth_config)
+    
+    @pytest.fixture
+    def model(self, seed_config: SeedNetworkConfig, evolution_config: EvolutionConfig) -> EvolvableCNN:
+        return EvolvableCNN(seed_config=seed_config, evolution_config=evolution_config)
+    
+    @pytest.fixture
+    def operators(self, model: EvolvableCNN, evolution_config: EvolutionConfig) -> EvolutionOperators:
+        return EvolutionOperators(model=model, config=evolution_config)
+    
+    def test_apply_grow_success(self, operators: EvolutionOperators) -> None:
+        result = operators.apply_grow()
+        
+        assert result.success is True
+        assert result.mutation_type == MutationType.GROW
+        assert result.new_num_blocks == result.old_num_blocks + 1
+    
+    def test_apply_grow_fails_at_max_blocks(self, seed_config: SeedNetworkConfig) -> None:
+        growth_config = GrowthConfig(max_blocks=3)
+        evolution_config = EvolutionConfig(seed_network=seed_config, growth=growth_config)
+        model = EvolvableCNN(seed_config=seed_config, evolution_config=evolution_config)
+        operators = EvolutionOperators(model=model, config=evolution_config)
+        
+        result = operators.apply_grow()
+        
+        assert result.success is False
+    
+    def test_apply_widen_success(self, operators: EvolutionOperators) -> None:
+        result = operators.apply_widen(block_idx=0)
+        
+        assert result.success is True
+        assert result.mutation_type == MutationType.WIDEN
+        assert result.target_layer == 0
+    
+    def test_apply_widen_invalid_index(self, operators: EvolutionOperators) -> None:
+        result = operators.apply_widen(block_idx=100)
+        
+        assert result.success is False
+    
+    def test_can_grow_true(self, operators: EvolutionOperators) -> None:
+        assert operators.can_grow() is True
+    
+    def test_can_widen_true(self, operators: EvolutionOperators) -> None:
+        assert operators.can_widen(block_idx=0) is True
+    
+    def test_mutation_result_has_correct_fields(self, operators: EvolutionOperators) -> None:
+        result = operators.apply_grow()
+        
+        assert hasattr(result, 'mutation_type')
+        assert hasattr(result, 'target_layer')
+        assert hasattr(result, 'success')
+        assert hasattr(result, 'old_num_blocks')
+        assert hasattr(result, 'new_num_blocks')
+
+
+class TestMutationSelector:
+    
+    @pytest.fixture
+    def model(self) -> EvolvableCNN:
+        seed_config = SeedNetworkConfig()
+        evolution_config = EvolutionConfig()
+        return EvolvableCNN(seed_config=seed_config, evolution_config=evolution_config)
+    
+    @pytest.fixture
+    def selector(self, model: EvolvableCNN) -> MutationSelector:
+        evolution_config = EvolutionConfig()
+        return MutationSelector(model=model, config=evolution_config)
+    
+    def test_compute_layer_sensitivities_returns_list(self, selector: MutationSelector) -> None:
+        sensitivities = selector.compute_layer_sensitivities()
+        
+        assert isinstance(sensitivities, list)
+    
+    def test_select_mutation_returns_tuple(self, selector: MutationSelector) -> None:
+        sensitivities = selector.compute_layer_sensitivities()
+        mutation_type, target = selector.select_mutation(sensitivities)
+        
+        assert isinstance(mutation_type, MutationType)
+
+
+class TestArchitectureTracker:
+    
+    @pytest.fixture
+    def tracker(self) -> ArchitectureTracker:
+        return ArchitectureTracker()
+    
+    def test_record_mutation_adds_to_history(self, tracker: ArchitectureTracker) -> None:
+        tracker.record_mutation(
+            epoch=1,
+            level=1,
+            mutation_type=MutationType.GROW,
+            target_layer=None,
+            num_blocks_before=3,
+            num_blocks_after=4,
+            num_params_before=1000,
+            num_params_after=2000,
+            ssl_loss_before=0.5,
+        )
+        
+        assert len(tracker.mutation_history) == 1
+    
+    def test_record_architecture_adds_snapshot(self, tracker: ArchitectureTracker) -> None:
+        summary = {"num_blocks": 3, "feature_dim": 64}
+        tracker.record_architecture(epoch=1, architecture_summary=summary)
+        
+        assert len(tracker.architecture_snapshots) == 1
+        assert tracker.architecture_snapshots[0]["epoch"] == 1
+    
+    def test_save_creates_file(self, tracker: ArchitectureTracker, tmp_path: Path) -> None:
+        tracker.record_mutation(
+            epoch=1,
+            level=1,
+            mutation_type=MutationType.GROW,
+            target_layer=None,
+            num_blocks_before=3,
+            num_blocks_after=4,
+            num_params_before=1000,
+            num_params_after=2000,
+            ssl_loss_before=0.5,
+        )
+        
+        filepath = tmp_path / "test_tracker.json"
+        tracker.save(filepath)
+        
+        assert filepath.exists()

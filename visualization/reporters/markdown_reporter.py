@@ -17,7 +17,7 @@ class MarkdownReporter:
 
     def __init__(self, output_dir: Path):
         self._output_dir = output_dir
-        self._output_dir. mkdir(parents=True, exist_ok=True)
+        self._output_dir.mkdir(parents=True, exist_ok=True)
 
     def generate_experiment_report(self, summary: ExperimentSummary) -> str:
         lines = [
@@ -33,8 +33,8 @@ class MarkdownReporter:
             "|----------|-------|",
         ]
 
-        for key, value in summary. final_architecture.items():
-            lines. append(f"| {key} | {value} |")
+        for key, value in summary.final_architecture.items():
+            lines.append(f"| {key} | {value} |")
 
         lines.extend([
             "",
@@ -44,11 +44,11 @@ class MarkdownReporter:
             "|--------|-------|",
         ])
 
-        for key, value in summary. training_metrics.items():
+        for key, value in summary.training_metrics.items():
             if isinstance(value, float):
-                lines. append(f"| {key} | {value:.4f} |")
+                lines.append(f"| {key} | {value:.4f} |")
             else:
-                lines. append(f"| {key} | {value} |")
+                lines.append(f"| {key} | {value} |")
 
         lines.extend([
             "",
@@ -58,9 +58,9 @@ class MarkdownReporter:
             "|--------|-------|",
         ])
 
-        for key, value in summary.evaluation_metrics. items():
+        for key, value in summary.evaluation_metrics.items():
             if isinstance(value, float):
-                lines. append(f"| {key} | {value:.2f} |")
+                lines.append(f"| {key} | {value:.2f} |")
             else:
                 lines.append(f"| {key} | {value} |")
 

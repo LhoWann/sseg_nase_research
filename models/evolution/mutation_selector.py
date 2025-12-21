@@ -4,7 +4,7 @@ from typing import Optional
 import torch
 from torch import Tensor
 
-from configs. evolution_config import EvolutionConfig
+from configs.evolution_config import EvolutionConfig
 from configs.evolution_config import GrowthConfig
 from models.backbones.evolvable_cnn import EvolvableCNN
 from models.evolution.evolution_operators import MutationType

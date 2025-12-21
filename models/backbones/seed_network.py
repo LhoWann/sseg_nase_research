@@ -2,7 +2,7 @@ import torch.nn as nn
 from torch import Tensor
 
 from configs.evolution_config import SeedNetworkConfig
-from models.backbones. conv_block import ConvBlock
+from models.backbones.conv_block import ConvBlock
 
 
 class SeedNetwork(nn.Module):
@@ -16,7 +16,7 @@ class SeedNetwork(nn.Module):
         
         self._build_architecture()
         
-        self. global_pool = nn.AdaptiveAvgPool2d(1)
+        self.global_pool = nn.AdaptiveAvgPool2d(1)
     
     def _build_architecture(self) -> None:
         in_channels = 3
@@ -48,7 +48,7 @@ class SeedNetwork(nn.Module):
     
     @property
     def channel_sizes(self) -> list[int]:
-        return self._channel_sizes. copy()
+        return self._channel_sizes.copy()
     
     def forward(self, x: Tensor) -> Tensor:
         for block in self._blocks:
@@ -60,7 +60,7 @@ class SeedNetwork(nn.Module):
         return x
     
     def get_architecture_summary(self) -> dict:
-        total_params = sum(p.numel() for p in self. parameters())
+        total_params = sum(p.numel() for p in self.parameters())
         trainable_params = sum(
             p.numel() for p in self.parameters() if p.requires_grad
         )

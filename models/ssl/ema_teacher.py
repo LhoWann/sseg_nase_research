@@ -32,14 +32,14 @@ class EMATeacher(nn. Module):
                 student_param = student_params[name]
                 
                 teacher_param.data.mul_(self._decay)
-                teacher_param.data. add_(student_param. data, alpha=1 - self._decay)
+                teacher_param.data.add_(student_param.data, alpha=1 - self._decay)
         
         student_buffers = dict(student.named_buffers())
-        teacher_buffers = dict(self._teacher. named_buffers())
+        teacher_buffers = dict(self._teacher.named_buffers())
         
         for name, teacher_buffer in teacher_buffers.items():
             if name in student_buffers:
-                teacher_buffer. data.copy_(student_buffers[name]. data)
+                teacher_buffer.data.copy_(student_buffers[name].data)
         
         self._update_count += 1
     

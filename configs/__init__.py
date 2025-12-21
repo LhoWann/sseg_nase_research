@@ -11,7 +11,7 @@ from configs.evolution_config import GrowthConfig
 from configs.evolution_config import NASEConfig
 from configs.ssl_config import SSLConfig
 from configs.ssl_config import AugmentationConfig
-from configs. evaluation_config import EvaluationConfig
+from configs.evaluation_config import EvaluationConfig
 from configs.evaluation_config import FewShotConfig
 
 

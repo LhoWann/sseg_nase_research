@@ -84,7 +84,7 @@ class ArchitectureTracker:
         filepath.parent.mkdir(parents=True, exist_ok=True)
         
         with open(filepath, "w") as f:
-            json. dump(data, f, indent=2)
+            json.dump(data, f, indent=2)
     
     @classmethod
     def load(cls, filepath: Path) -> "ArchitectureTracker":

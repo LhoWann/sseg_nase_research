@@ -74,7 +74,7 @@ class CurriculumConfig:
         if self.image_size <= 0:
             raise ValueError("image_size must be positive")
         
-        if not 0.0 <= self. gradual_mixing_ratio <= 1.0:
+        if not 0.0 <= self.gradual_mixing_ratio <= 1.0:
             raise ValueError("gradual_mixing_ratio must be in [0, 1]")
         
         weight_sum = sum(self.difficulty_weights)

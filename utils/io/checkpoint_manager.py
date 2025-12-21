@@ -29,7 +29,7 @@ class CheckpointMetadata:
             "epoch": self.epoch,
             "curriculum_level": self.curriculum_level,
             "num_blocks":  self.num_blocks,
-            "num_params": self. num_params,
+            "num_params": self.num_params,
             "feature_dim": self.feature_dim,
             "ssl_loss": self.ssl_loss,
             "timestamp":  self.timestamp,
@@ -47,7 +47,7 @@ class CheckpointMetadata:
             feature_dim=data["feature_dim"],
             ssl_loss=data["ssl_loss"],
             timestamp=data["timestamp"],
-            mutation_count=data. get("mutation_count", 0),
+            mutation_count=data.get("mutation_count", 0),
         )
 
 
@@ -69,7 +69,7 @@ class CheckpointManager:
         self._load_existing_checkpoints()
     
     def _load_existing_checkpoints(self) -> None:
-        pattern = f"{self._experiment_name}_epoch_*. pt"
+        pattern = f"{self._experiment_name}_epoch_*.pt"
         existing = sorted(self._checkpoint_dir.glob(pattern))
         self._saved_checkpoints = existing
     
@@ -109,7 +109,7 @@ class CheckpointManager:
         if additional_state: 
             checkpoint["additional_state"] = additional_state
         
-        filename = f"{self._experiment_name}_epoch_{epoch:04d}. pt"
+        filename = f"{self._experiment_name}_epoch_{epoch:04d}.pt"
         filepath = self._checkpoint_dir / filename
         
         torch.save(checkpoint, filepath)
@@ -171,7 +171,7 @@ class CheckpointManager:
         
         model.load_state_dict(checkpoint["model_state_dict"])
         
-        metadata = CheckpointMetadata. from_dict(checkpoint["metadata"])
+        metadata = CheckpointMetadata.from_dict(checkpoint["metadata"])
         
         return metadata
     
@@ -201,8 +201,8 @@ class CheckpointManager:
     def get_best_checkpoint(self, metric: str = "ssl_loss") -> Optional[Path]: 
         metadata_file = self._checkpoint_dir / f"{self._experiment_name}_metadata.json"
         
-        if not metadata_file. exists():
-            return self. get_latest_checkpoint()
+        if not metadata_file.exists():
+            return self.get_latest_checkpoint()
         
         with open(metadata_file, "r") as f:
             all_metadata = json.load(f)
@@ -210,7 +210,7 @@ class CheckpointManager:
         best_epoch = None
         best_value = float("inf")
         
-        for key, meta in all_metadata. items():
+        for key, meta in all_metadata.items():
             if metric in meta and meta[metric] < best_value: 
                 best_value = meta[metric]
                 best_epoch = meta["epoch"]

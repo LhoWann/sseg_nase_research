@@ -72,10 +72,10 @@ class SyntheticGenerator:
             self._generator.manual_seed(config.seed)
     
     def generate_basic_shape(self) -> torch.Tensor:
-        image = torch.zeros(3, self._config. image_size, self._config.image_size)
+        image = torch.zeros(3, self._config.image_size, self._config.image_size)
         color = torch.rand(3, generator=self._generator)
         
-        center_y = self._config. image_size // 2
+        center_y = self._config.image_size // 2
         center_x = self._config.image_size // 2
         radius = torch.randint(
             self._config.image_size // 8,
@@ -85,7 +85,7 @@ class SyntheticGenerator:
         ).item()
         
         y_coords = torch.arange(self._config.image_size).view(-1, 1)
-        x_coords = torch.arange(self._config. image_size).view(1, -1)
+        x_coords = torch.arange(self._config.image_size).view(1, -1)
         
         dist_sq = (y_coords - center_y) ** 2 + (x_coords - center_x) ** 2
         mask = dist_sq <= radius ** 2
@@ -96,19 +96,19 @@ class SyntheticGenerator:
         return image
     
     def generate_texture(self) -> torch.Tensor:
-        image = torch.zeros(3, self._config. image_size, self._config.image_size)
+        image = torch.zeros(3, self._config.image_size, self._config.image_size)
         
         base_freq = torch.rand(1, generator=self._generator).item() * 10 + 5
         
-        y_coords = torch. arange(
-            self._config. image_size, dtype=torch.float32
+        y_coords = torch.arange(
+            self._config.image_size, dtype=torch.float32
         ).view(-1, 1)
         x_coords = torch.arange(
-            self._config.image_size, dtype=torch. float32
+            self._config.image_size, dtype=torch.float32
         ).view(1, -1)
         
         for c in range(3):
-            phase = torch.rand(1, generator=self._generator).item() * 6. 28
+            phase = torch.rand(1, generator=self._generator).item() * 6.28
             normalized_coords = (y_coords + x_coords) / self._config.image_size
             pattern = torch.sin(normalized_coords * base_freq * 6.28 + phase)
             noise = torch.rand(
@@ -123,13 +123,13 @@ class SyntheticGenerator:
     def generate_complex_object(self) -> torch.Tensor:
         background_color = torch.rand(3, generator=self._generator) * 0.3
         image = background_color.view(3, 1, 1).expand(
-            3, self._config. image_size, self._config.image_size
+            3, self._config.image_size, self._config.image_size
         ).clone()
         
         num_shapes = torch.randint(2, 5, (1,), generator=self._generator).item()
         
         for _ in range(num_shapes):
-            shape = self. generate_basic_shape()
+            shape = self.generate_basic_shape()
             offset_y = torch.randint(
                 -20, 21, (1,), generator=self._generator
             ).item()
@@ -140,14 +140,14 @@ class SyntheticGenerator:
             if offset_y != 0 or offset_x != 0:
                 shape = torch.roll(shape, shifts=(offset_y, offset_x), dims=(1, 2))
             
-            mask = shape. sum(dim=0) > 0
+            mask = shape.sum(dim=0) > 0
             image[: , mask] = shape[: , mask]
         
         return torch.clamp(image, 0, 1)
     
     def generate_adversarial(self) -> torch.Tensor:
         base_image = self.generate_complex_object()
-        perturbation = torch. randn(
+        perturbation = torch.randn(
             3,
             self._config.image_size,
             self._config.image_size,
@@ -188,7 +188,7 @@ class DifficultyScorer:
         ).view(1, 1, 3, 3)
         
         edges_x = torch.nn.functional.conv2d(grayscale, sobel_x, padding=1)
-        edges_y = torch. nn.functional.conv2d(grayscale, sobel_y, padding=1)
+        edges_y = torch.nn.functional.conv2d(grayscale, sobel_y, padding=1)
         edge_magnitude = torch.sqrt(edges_x ** 2 + edges_y ** 2)
         
         return edge_magnitude.mean().item()
@@ -202,10 +202,10 @@ class DifficultyScorer:
     def compute_spatial_frequency(self, image: torch. Tensor) -> float:
         if image.dim() == 3:
             image = image.unsqueeze(0)
-        grayscale = image. mean(dim=1)
+        grayscale = image.mean(dim=1)
         fft_result = torch.fft.fft2(grayscale)
         magnitude = torch.abs(fft_result)
-        return magnitude. mean().item()
+        return magnitude.mean().item()
     
     def score(self, image: torch. Tensor) -> DifficultyComponents:
         edge = self.compute_edge_density(image)
@@ -265,7 +265,7 @@ class CurriculumDataset(torch.utils.data.Dataset):
         elif self._level == CurriculumLevel.TEXTURE: 
             image = self._generator.generate_texture()
         elif self._level == CurriculumLevel. OBJECT:
-            image = self._generator. generate_complex_object()
+            image = self._generator.generate_complex_object()
         else: 
             image = self._generator.generate_adversarial()
         
@@ -276,7 +276,7 @@ class CurriculumDataset(torch.utils.data.Dataset):
     
     def get_difficulty_score(self, index: int) -> float:
         image = self[index]
-        components = self._scorer. score(image)
+        components = self._scorer.score(image)
         return components.aggregate(self._config.difficulty_weights)
 
 
@@ -349,7 +349,7 @@ class TestSyntheticGenerator:
         image = generator.generate_texture()
         
         assert image.shape == (3, 84, 84)
-        assert image. dtype == torch.float32
+        assert image.dtype == torch.float32
     
     def test_generate_texture_values_in_valid_range(
         self, generator: SyntheticGenerator
@@ -372,8 +372,8 @@ class TestSyntheticGenerator:
     ) -> None:
         image = generator.generate_adversarial()
         
-        assert image. shape == (3, 84, 84)
-        assert image.dtype == torch. float32
+        assert image.shape == (3, 84, 84)
+        assert image.dtype == torch.float32
     
     def test_generator_reproducibility_with_same_seed(self) -> None:
         config1 = GenerationConfig(image_size=84, seed=123)
@@ -411,17 +411,17 @@ class TestDifficultyScorer:
     ) -> None:
         image = torch.rand(3, 84, 84)
         
-        components = scorer. score(image)
+        components = scorer.score(image)
         
         assert isinstance(components, DifficultyComponents)
-        assert 0. 0 <= components. edge_density <= 1.0
+        assert 0.0 <= components.edge_density <= 1.0
         assert 0.0 <= components.color_variance <= 1.0
         assert 0.0 <= components.spatial_frequency <= 1.0
     
     def test_compute_edge_density_returns_float(
         self, scorer: DifficultyScorer
     ) -> None:
-        image = torch. rand(3, 84, 84)
+        image = torch.rand(3, 84, 84)
         
         edge_density = scorer.compute_edge_density(image)
         
@@ -443,7 +443,7 @@ class TestDifficultyScorer:
     ) -> None:
         image = torch.rand(3, 84, 84)
         
-        spatial_frequency = scorer. compute_spatial_frequency(image)
+        spatial_frequency = scorer.compute_spatial_frequency(image)
         
         assert isinstance(spatial_frequency, float)
         assert spatial_frequency >= 0.0
@@ -534,12 +534,12 @@ class TestCurriculumScheduler:
     def test_advance_level_increments_level(
         self, scheduler: CurriculumScheduler
     ) -> None:
-        initial_level = scheduler. current_level
+        initial_level = scheduler.current_level
         
         advanced = scheduler.advance_level()
         
         assert advanced is True
-        assert scheduler. current_level == CurriculumLevel(initial_level + 1)
+        assert scheduler.current_level == CurriculumLevel(initial_level + 1)
     
     def test_advance_level_returns_false_at_final_level(
         self, scheduler: CurriculumScheduler
@@ -550,7 +550,7 @@ class TestCurriculumScheduler:
         advanced = scheduler.advance_level()
         
         assert advanced is False
-        assert scheduler. current_level == CurriculumLevel. ADVERSARIAL
+        assert scheduler.current_level == CurriculumLevel. ADVERSARIAL
     
     def test_is_final_level_true_at_adversarial(
         self, scheduler: CurriculumScheduler
@@ -564,7 +564,7 @@ class TestCurriculumScheduler:
     def test_get_current_dataset_returns_dataset(
         self, scheduler: CurriculumScheduler
     ) -> None:
-        dataset = scheduler. get_current_dataset()
+        dataset = scheduler.get_current_dataset()
         
         assert isinstance(dataset, CurriculumDataset)
     
@@ -576,7 +576,7 @@ class TestCurriculumScheduler:
         
         scheduler.reset()
         
-        assert scheduler. current_level == CurriculumLevel. BASIC
+        assert scheduler.current_level == CurriculumLevel. BASIC
     
     def test_progress_increases_with_level(
         self, scheduler: CurriculumScheduler

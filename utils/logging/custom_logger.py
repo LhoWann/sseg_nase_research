@@ -22,11 +22,11 @@ class LogRecord:
     message: str
     
     def format(self, include_timestamp: bool = True) -> str:
-        level_name = self. level.name
+        level_name = self.level.name
         
         if include_timestamp:
             return f"[{self.timestamp}] [{level_name: 8s}] [{self.module}] {self.message}"
-        return f"[{level_name:8s}] [{self. module}] {self.message}"
+        return f"[{level_name:8s}] [{self.module}] {self.message}"
 
 
 class CustomLogger:
@@ -171,7 +171,7 @@ class CustomLogger:
     ) -> None:
         message = (
             f"Evaluation: {num_shots}-shot "
-            f"accuracy={mean_accuracy:. 2f}%±{margin:.2f}%"
+            f"accuracy={mean_accuracy:.2f}%±{margin:.2f}%"
         )
         self.info(message)
     
@@ -189,4 +189,4 @@ def get_logger(
     level: LogLevel = LogLevel. INFO,
     log_file: Optional[Path] = None,
 ) -> CustomLogger: 
-    return CustomLogger. get_instance(name, level, log_file)
+    return CustomLogger.get_instance(name, level, log_file)

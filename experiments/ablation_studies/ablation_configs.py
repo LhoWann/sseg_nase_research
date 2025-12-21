@@ -8,7 +8,7 @@ from configs.curriculum_config import CurriculumConfig
 from configs.evolution_config import EvolutionConfig
 from configs.evolution_config import GrowthConfig
 from configs.evolution_config import NASEConfig
-from configs. evolution_config import SeedNetworkConfig
+from configs.evolution_config import SeedNetworkConfig
 from configs.evolution_config import FitnessConfig
 from configs.ssl_config import DistillationConfig
 from configs.ssl_config import SSLConfig
@@ -49,9 +49,9 @@ class AblationConfig:
             self.growth = GrowthConfig()
         
         if self.nase is None:
-            self. nase = NASEConfig()
+            self.nase = NASEConfig()
         
-        if self. ssl is None: 
+        if self.ssl is None: 
             self.ssl = SSLConfig()
         
         if self.curriculum is None:

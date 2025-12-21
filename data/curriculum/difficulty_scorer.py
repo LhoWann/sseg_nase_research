@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 import torch
-import torch.nn. functional as F
+import torch.nn.functional as F
 from torch import Tensor
 
 
@@ -56,7 +56,7 @@ class DifficultyScorer:
     
     def compute_color_variance(self, image: Tensor) -> float:
         if image.dim() == 3:
-            image = image. unsqueeze(0)
+            image = image.unsqueeze(0)
         
         per_channel_var = image.var(dim=(2, 3))
         

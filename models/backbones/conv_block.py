@@ -1,6 +1,6 @@
 from typing import Literal
 
-import torch. nn as nn
+import torch.nn as nn
 from torch import Tensor
 
 
@@ -80,7 +80,7 @@ class ResidualConvBlock(nn. Module):
         out = self.activation(out)
         
         out = self.conv2(out)
-        out = self. bn2(out)
+        out = self.bn2(out)
         
         out = out + identity
         out = self.activation(out)

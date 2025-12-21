@@ -15,8 +15,8 @@ from configs.evolution_config import GrowthConfig
 from configs.evolution_config import NASEConfig
 from configs.evolution_config import SeedNetworkConfig
 from configs.hardware_config import get_hardware_config
-from configs. ssl_config import AugmentationConfig
-from configs. ssl_config import ContrastiveLossConfig
+from configs.ssl_config import AugmentationConfig
+from configs.ssl_config import ContrastiveLossConfig
 from configs.ssl_config import DistillationConfig
 from configs.ssl_config import ProjectionConfig
 from configs.ssl_config import SSLConfig
@@ -77,7 +77,7 @@ def build_config_from_yaml(yaml_path: Path) -> BaseConfig:
     fitness_cfg = config_dict["evolution"]["fitness"]
     fitness = FitnessConfig(
         alpha_complexity_penalty=fitness_cfg["alpha_complexity_penalty"],
-        target_flops_giga=fitness_cfg. get("target_flops_giga", 1.0),
+        target_flops_giga=fitness_cfg.get("target_flops_giga", 1.0),
         target_params_million=fitness_cfg.get("target_params_million", 1.0),
     )
     
@@ -99,21 +99,21 @@ def build_config_from_yaml(yaml_path: Path) -> BaseConfig:
     cont_cfg = config_dict["ssl"]["contrastive"]
     contrastive = ContrastiveLossConfig(
         temperature=cont_cfg["temperature"],
-        loss_type=cont_cfg. get("loss_type", "ntxent"),
+        loss_type=cont_cfg.get("loss_type", "ntxent"),
     )
     
     dist_cfg = config_dict["ssl"]["distillation"]
     distillation = DistillationConfig(
         ema_decay=dist_cfg["ema_decay"],
         distillation_weight=dist_cfg["distillation_weight"],
-        distillation_loss=dist_cfg. get("distillation_loss", "mse"),
+        distillation_loss=dist_cfg.get("distillation_loss", "mse"),
     )
     
     proj_cfg = config_dict["ssl"]["projection"]
     projection = ProjectionConfig(
         hidden_dim=proj_cfg["hidden_dim"],
         output_dim=proj_cfg["output_dim"],
-        num_layers=proj_cfg. get("num_layers", 2),
+        num_layers=proj_cfg.get("num_layers", 2),
     )
     
     ssl = SSLConfig(
@@ -129,7 +129,7 @@ def build_config_from_yaml(yaml_path: Path) -> BaseConfig:
         num_shots=tuple(fs_cfg["num_shots"]),
         num_queries_per_class=fs_cfg["num_queries_per_class"],
         num_episodes=fs_cfg["num_episodes"],
-        distance_metric=fs_cfg. get("distance_metric", "cosine"),
+        distance_metric=fs_cfg.get("distance_metric", "cosine"),
     )
     
     metrics = MetricsConfig()
@@ -148,5 +148,5 @@ def build_config_from_yaml(yaml_path: Path) -> BaseConfig:
         evolution=evolution,
         ssl=ssl,
         evaluation=evaluation,
-        debug_mode=config_dict. get("debug_mode", False),
+        debug_mode=config_dict.get("debug_mode", False),
     )

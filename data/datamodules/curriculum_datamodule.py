@@ -1,11 +1,11 @@
 from typing import Optional
 
 import pytorch_lightning as pl
-from torch. utils.data import DataLoader
+from torch.utils.data import DataLoader
 
 from configs.curriculum_config import CurriculumConfig
 from configs.hardware_config import HardwareConfig
-from data.curriculum. curriculum_scheduler import CurriculumScheduler
+from data.curriculum.curriculum_scheduler import CurriculumScheduler
 
 
 class CurriculumDataModule(pl.LightningDataModule):
@@ -40,7 +40,7 @@ class CurriculumDataModule(pl.LightningDataModule):
         )
     
     def advance_curriculum(self) -> bool:
-        return self._scheduler. advance_level()
+        return self._scheduler.advance_level()
     
     @property
     def current_level(self) -> int:

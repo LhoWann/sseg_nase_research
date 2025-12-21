@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Literal
 
 from torch import Tensor
-from torch.utils. data import Dataset
+from torch.utils.data import Dataset
 from torchvision import transforms
 from PIL import Image
 
@@ -38,7 +38,7 @@ class CIFARFSDataset(Dataset):
         transform_list = []
         
         if self._augment:
-            transform_list. extend([
+            transform_list.extend([
                 transforms.RandomResizedCrop(
                     self._image_size,
                     scale=(0.8, 1.0),
@@ -79,7 +79,7 @@ class CIFARFSDataset(Dataset):
             valid_extensions = {".jpg", ".jpeg", ".png", ".JPEG", ". JPG", ".PNG"}
             for image_path in class_dir.iterdir():
                 if image_path.suffix in valid_extensions:
-                    self._samples. append((image_path, class_idx))
+                    self._samples.append((image_path, class_idx))
     
     def __len__(self) -> int:
         return len(self._samples)

@@ -2,7 +2,7 @@ from typing import Literal
 from typing import Optional
 
 import torch
-import torch.nn. functional as F
+import torch.nn.functional as F
 from torch import Tensor
 
 
@@ -28,7 +28,7 @@ class PrototypeHead:
             mask = support_labels == label
             class_features = support_features[mask]
             prototype = class_features.mean(dim=0)
-            prototypes. append(prototype)
+            prototypes.append(prototype)
         
         self._prototypes = torch.stack(prototypes)
     
@@ -43,7 +43,7 @@ class PrototypeHead:
             prototypes = self._prototypes
         
         if self._distance_metric == "cosine":
-            similarities = torch.mm(query_features, prototypes. t())
+            similarities = torch.mm(query_features, prototypes.t())
             predictions = similarities.argmax(dim=1)
         else:
             distances = torch.cdist(query_features, prototypes)
@@ -57,7 +57,7 @@ class PrototypeHead:
         
         if self._normalize_features:
             query_features = F.normalize(query_features, dim=1)
-            prototypes = F. normalize(self._prototypes, dim=1)
+            prototypes = F.normalize(self._prototypes, dim=1)
         else:
             prototypes = self._prototypes
         

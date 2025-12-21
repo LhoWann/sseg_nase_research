@@ -5,7 +5,7 @@ from typing import Optional
 import matplotlib.pyplot as plt
 import numpy as np
 
-from visualization. plotters.evolution_plotter import PlotStyle
+from visualization.plotters.evolution_plotter import PlotStyle
 
 
 @dataclass
@@ -33,7 +33,7 @@ class AccuracyPlotter:
             "font.size": self._style.font_size,
             "axes.titlesize": self._style.title_size,
             "axes.labelsize":  self._style.font_size,
-            "legend.fontsize": self._style. legend_size,
+            "legend.fontsize": self._style.legend_size,
             "axes.grid": True,
             "grid.alpha":  self._style.grid_alpha,
         })
@@ -52,7 +52,7 @@ class AccuracyPlotter:
             size = 200 if is_ours else 100
 
             ax.scatter(
-                entry. flops_giga,
+                entry.flops_giga,
                 entry.five_shot_mean,
                 s=size,
                 c=color,
@@ -67,7 +67,7 @@ class AccuracyPlotter:
             offset_y = 0.5
             ax.annotate(
                 entry.method_name,
-                (entry. flops_giga, entry.five_shot_mean),
+                (entry.flops_giga, entry.five_shot_mean),
                 textcoords="offset points",
                 xytext=(5, 5),
                 fontsize=self._style.legend_size,
@@ -80,7 +80,7 @@ class AccuracyPlotter:
 
         fig.tight_layout()
 
-        save_path = self._output_dir / f"accuracy_vs_complexity. {self._style. save_format}"
+        save_path = self._output_dir / f"accuracy_vs_complexity. {self._style.save_format}"
         fig.savefig(save_path, dpi=self._style.dpi, bbox_inches="tight")
         plt.close(fig)
 
@@ -96,10 +96,10 @@ class AccuracyPlotter:
     ) -> Path:
         fig, ax = plt.subplots(figsize=(12, 6))
 
-        x = np. arange(len(config_names))
+        x = np.arange(len(config_names))
         width = 0.35
 
-        bars1 = ax. bar(
+        bars1 = ax.bar(
             x - width / 2,
             one_shot_acc,
             width,
@@ -135,7 +135,7 @@ class AccuracyPlotter:
         fig.tight_layout()
 
         save_path = self._output_dir / f"ablation_bar_chart.{self._style.save_format}"
-        fig. savefig(save_path, dpi=self._style. dpi, bbox_inches="tight")
+        fig.savefig(save_path, dpi=self._style.dpi, bbox_inches="tight")
         plt.close(fig)
 
         return save_path

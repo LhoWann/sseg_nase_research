@@ -3,7 +3,7 @@ from typing import Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
-from numpy. typing import NDArray
+from numpy.typing import NDArray
 
 from visualization.plotters.evolution_plotter import PlotStyle
 
@@ -22,7 +22,7 @@ class EmbeddingPlotter:
             "font.size": self._style.font_size,
             "axes.titlesize": self._style.title_size,
             "axes.labelsize":  self._style.font_size,
-            "legend.fontsize": self._style. legend_size,
+            "legend.fontsize": self._style.legend_size,
         })
 
     def plot_tsne(
@@ -45,15 +45,15 @@ class EmbeddingPlotter:
 
         fig, ax = plt.subplots(figsize=self._style.figure_size)
 
-        unique_labels = np. unique(labels)
+        unique_labels = np.unique(labels)
         num_classes = len(unique_labels)
-        colors = plt. cm.tab10(np.linspace(0, 1, min(num_classes, 10)))
+        colors = plt.cm.tab10(np.linspace(0, 1, min(num_classes, 10)))
 
         for idx, label in enumerate(unique_labels):
             mask = labels == label
             label_name = class_names[idx] if class_names else f"Class {label}"
 
-            ax. scatter(
+            ax.scatter(
                 embeddings_2d[mask, 0],
                 embeddings_2d[mask, 1],
                 c=[colors[idx % len(colors)]],
@@ -74,7 +74,7 @@ class EmbeddingPlotter:
         fig.tight_layout()
 
         save_path = self._output_dir / f"tsne_embeddings.{self._style.save_format}"
-        fig. savefig(save_path, dpi=self._style. dpi, bbox_inches="tight")
+        fig.savefig(save_path, dpi=self._style.dpi, bbox_inches="tight")
         plt.close(fig)
 
         return save_path
@@ -132,7 +132,7 @@ class EmbeddingPlotter:
         fig.tight_layout()
 
         save_path = self._output_dir / f"umap_embeddings.{self._style.save_format}"
-        fig. savefig(save_path, dpi=self._style. dpi, bbox_inches="tight")
+        fig.savefig(save_path, dpi=self._style.dpi, bbox_inches="tight")
         plt.close(fig)
 
         return save_path
@@ -152,8 +152,8 @@ class EmbeddingPlotter:
         emb_before_2d = tsne.fit_transform(embeddings_before)
         emb_after_2d = tsne.fit_transform(embeddings_after)
 
-        unique_labels = np. unique(labels)
-        colors = plt.cm. tab10(np. linspace(0, 1, min(len(unique_labels), 10)))
+        unique_labels = np.unique(labels)
+        colors = plt.cm.tab10(np.linspace(0, 1, min(len(unique_labels), 10)))
 
         for idx, label in enumerate(unique_labels):
             mask = labels == label
@@ -166,7 +166,7 @@ class EmbeddingPlotter:
                 s=30,
             )
 
-            axes[1]. scatter(
+            axes[1].scatter(
                 emb_after_2d[mask, 0],
                 emb_after_2d[mask, 1],
                 c=[colors[idx % len(colors)]],
@@ -176,7 +176,7 @@ class EmbeddingPlotter:
 
         axes[0].set_title("Before Evolution")
         axes[0].set_xlabel("t-SNE Dimension 1")
-        axes[0]. set_ylabel("t-SNE Dimension 2")
+        axes[0].set_ylabel("t-SNE Dimension 2")
 
         axes[1].set_title("After Evolution")
         axes[1].set_xlabel("t-SNE Dimension 1")
@@ -185,7 +185,7 @@ class EmbeddingPlotter:
         fig.suptitle("Feature Embedding Quality Comparison", fontsize=14)
         fig.tight_layout()
 
-        save_path = self._output_dir / f"embedding_comparison. {self._style. save_format}"
+        save_path = self._output_dir / f"embedding_comparison. {self._style.save_format}"
         fig.savefig(save_path, dpi=self._style.dpi, bbox_inches="tight")
         plt.close(fig)
 

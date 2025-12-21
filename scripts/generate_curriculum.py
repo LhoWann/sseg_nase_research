@@ -66,15 +66,15 @@ def generate_level_data(
     output_dir: Path,
     logger,
 ) -> dict:
-    level_dir = output_dir / f"level_{level.value}_{level.name. lower()}"
+    level_dir = output_dir / f"level_{level.value}_{level.name.lower()}"
     level_dir.mkdir(parents=True, exist_ok=True)
     
     images_dir = level_dir / "images"
-    images_dir. mkdir(exist_ok=True)
+    images_dir.mkdir(exist_ok=True)
     
     metadata = {
         "level": level.value,
-        "level_name": level. name,
+        "level_name": level.name,
         "num_samples": num_samples,
         "samples":  [],
     }
@@ -104,15 +104,15 @@ def generate_level_data(
             "index": idx,
             "filename": image_filename,
             "difficulty_score": difficulty_score,
-            "edge_density": difficulty_components. edge_density,
-            "color_variance": difficulty_components. color_variance,
-            "spatial_frequency": difficulty_components. spatial_frequency,
+            "edge_density": difficulty_components.edge_density,
+            "color_variance": difficulty_components.color_variance,
+            "spatial_frequency": difficulty_components.spatial_frequency,
         })
     
     metadata["samples"].sort(key=lambda x: x["difficulty_score"])
     
     import json
-    metadata_path = level_dir / "metadata. json"
+    metadata_path = level_dir / "metadata.json"
     with open(metadata_path, "w") as f:
         json.dump(metadata, f, indent=2)
     
@@ -130,40 +130,40 @@ def generate_curriculum(args: argparse. Namespace) -> None:
     
     seed_everything(args.seed, deterministic=True)
     
-    curriculum_config = CurriculumConfig(image_size=args. image_size)
+    curriculum_config = CurriculumConfig(image_size=args.image_size)
     
     gen_config = GenerationConfig(
-        image_size=args. image_size,
+        image_size=args.image_size,
         seed=args.seed,
     )
     generator = SyntheticGenerator(gen_config)
     scorer = DifficultyScorer()
     
     logger.info(f"Generating curriculum data to:  {args.output_dir}")
-    logger.info(f"Image size: {args. image_size}")
+    logger.info(f"Image size: {args.image_size}")
     logger.info(f"Levels: {args.levels}")
     
     all_metadata = {}
     
     for level_int in args.levels:
         level = CurriculumLevel(level_int)
-        level_spec = curriculum_config. get_level_spec(level)
+        level_spec = curriculum_config.get_level_spec(level)
         
-        num_samples = int(level_spec. num_samples * args.samples_multiplier)
+        num_samples = int(level_spec.num_samples * args.samples_multiplier)
         
         metadata = generate_level_data(
             level=level,
             num_samples=num_samples,
             generator=generator,
             scorer=scorer,
-            output_dir=args. output_dir,
+            output_dir=args.output_dir,
             logger=logger,
         )
         
-        all_metadata[level. name] = {
+        all_metadata[level.name] = {
             "num_samples": num_samples,
             "complexity_range": (
-                level_spec. complexity_min,
+                level_spec.complexity_min,
                 level_spec.complexity_max,
             ),
         }
@@ -171,16 +171,16 @@ def generate_curriculum(args: argparse. Namespace) -> None:
         logger.info(f"Completed {level.name}:  {num_samples} samples")
     
     import json
-    summary_path = args. output_dir / "curriculum_summary.json"
+    summary_path = args.output_dir / "curriculum_summary.json"
     with open(summary_path, "w") as f:
-        json. dump(all_metadata, f, indent=2)
+        json.dump(all_metadata, f, indent=2)
     
     logger.info("Curriculum generation completed successfully")
     
     print("\nCurriculum Generation Summary")
     print("=" * 50)
     
-    for level_name, info in all_metadata. items():
+    for level_name, info in all_metadata.items():
         print(f"{level_name}:  {info['num_samples']} samples")
     
     print("=" * 50)
@@ -193,4 +193,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()        }
+    main()

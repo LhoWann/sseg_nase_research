@@ -5,7 +5,7 @@ from typing import Optional
 
 from torch import Tensor
 
-from configs. evolution_config import EvolutionConfig
+from configs.evolution_config import EvolutionConfig
 from models.backbones.evolvable_cnn import EvolvableCNN
 
 
@@ -55,7 +55,7 @@ class EvolutionOperators:
         
         success = self._model.widen(block_idx)
         
-        new_summary = self._model. get_architecture_summary()
+        new_summary = self._model.get_architecture_summary()
         
         return MutationResult(
             mutation_type=MutationType.WIDEN,
@@ -71,8 +71,8 @@ class EvolutionOperators:
         return self._model.num_blocks < self._config.growth.max_blocks
     
     def can_widen(self, block_idx: int) -> bool:
-        if block_idx >= self._model. num_blocks:
+        if block_idx >= self._model.num_blocks:
             return False
         
-        current_channels = self._model. channel_sizes[block_idx]
+        current_channels = self._model.channel_sizes[block_idx]
         return current_channels < self._config.growth.max_channels

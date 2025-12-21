@@ -21,10 +21,10 @@ class RandomState:
                 "keys": self.numpy_state["keys"],
                 "pos": self.numpy_state["pos"],
             },
-            "torch_state": self. torch_state.tolist(),
+            "torch_state": self.torch_state.tolist(),
             "cuda_state": (
                 [s.tolist() for s in self.cuda_state]
-                if self. cuda_state
+                if self.cuda_state
                 else None
             ),
         }
@@ -44,7 +44,7 @@ def seed_everything(seed: int, deterministic: bool = True) -> None:
         torch.cuda.manual_seed_all(seed)
     
     if deterministic:
-        torch. backends.cudnn. deterministic = True
+        torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
         
         os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
@@ -56,21 +56,21 @@ def seed_everything(seed: int, deterministic: bool = True) -> None:
 
 
 def get_random_state() -> RandomState: 
-    python_state = random. getstate()
+    python_state = random.getstate()
     
     numpy_state = np.random.get_state()
     numpy_state_dict = {
-        "keys": numpy_state[1]. tolist(),
+        "keys": numpy_state[1].tolist(),
         "pos": numpy_state[2],
     }
     
     torch_state = torch.get_rng_state()
     
     cuda_state = None
-    if torch. cuda.is_available():
+    if torch.cuda.is_available():
         cuda_state = [
             torch.cuda.get_rng_state(device=i)
-            for i in range(torch. cuda.device_count())
+            for i in range(torch.cuda.device_count())
         ]
     
     return RandomState(
@@ -89,14 +89,14 @@ def set_random_state(state: RandomState) -> None:
         np.array(state.numpy_state["keys"], dtype=np.uint32),
         state.numpy_state["pos"],
         0,
-        0. 0,
+        0.0,
     )
     np.random.set_state(np_state)
     
-    torch. set_rng_state(state.torch_state)
+    torch.set_rng_state(state.torch_state)
     
-    if state. cuda_state and torch.cuda.is_available():
-        for i, cuda_s in enumerate(state. cuda_state):
+    if state.cuda_state and torch.cuda.is_available():
+        for i, cuda_s in enumerate(state.cuda_state):
             if i < torch.cuda.device_count():
                 torch.cuda.set_rng_state(cuda_s, device=i)
 

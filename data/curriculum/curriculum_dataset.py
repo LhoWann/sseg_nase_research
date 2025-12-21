@@ -9,7 +9,7 @@ from configs.curriculum_config import CurriculumConfig
 from configs.curriculum_config import CurriculumLevel
 from data.curriculum.difficulty_scorer import DifficultyScorer
 from data.curriculum.synthetic_generator import GenerationConfig
-from data.curriculum. synthetic_generator import SyntheticGenerator
+from data.curriculum.synthetic_generator import SyntheticGenerator
 
 
 class CurriculumDataset(Dataset):
@@ -44,11 +44,11 @@ class CurriculumDataset(Dataset):
     
     def _generate_sample(self, level: CurriculumLevel) -> Tensor:
         if level == CurriculumLevel.BASIC:
-            return self._generator. generate_basic_shape()
+            return self._generator.generate_basic_shape()
         elif level == CurriculumLevel.TEXTURE:
             return self._generator.generate_texture()
         elif level == CurriculumLevel.OBJECT:
-            return self._generator. generate_complex_object()
+            return self._generator.generate_complex_object()
         else:
             return self._generator.generate_adversarial()
     

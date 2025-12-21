@@ -15,7 +15,7 @@ class MaskGenerator:
         positive_masks = {}
         negative_masks = {}
         
-        for name, importance in importance_scores. items():
+        for name, importance in importance_scores.items():
             threshold = torch.quantile(
                 importance.flatten().float(), self._config.sparsity_ratio
             )
@@ -28,7 +28,7 @@ class MaskGenerator:
             )
             
             if positive_mask.sum() < min_active:
-                top_k_indices = torch.topk(importance. flatten(), min_active).indices
+                top_k_indices = torch.topk(importance.flatten(), min_active).indices
                 
                 positive_mask_flat = positive_mask.flatten()
                 positive_mask_flat[top_k_indices] = 1.0
