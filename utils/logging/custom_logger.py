@@ -25,7 +25,7 @@ class LogRecord:
         level_name = self.level.name
         
         if include_timestamp:
-            return f"[{self.timestamp}] [{level_name: 8s}] [{self.module}] {self.message}"
+            return f"[{self.timestamp}] [{level_name:8s}] [{self.module}] {self.message}"
         return f"[{level_name:8s}] [{self.module}] {self.message}"
 
 
