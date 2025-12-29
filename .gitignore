@@ -29,3 +29,5 @@ outputs/logs/
 
 wandb/
 mlruns/
+
+configs_experiments_exp_rtx3050_run.json
