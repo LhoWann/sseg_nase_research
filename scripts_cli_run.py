@@ -57,16 +57,12 @@ def run_subprocess(cmd: StageCommand) -> int:
             cmd.command,
             cwd=str(cmd.cwd) if cmd.cwd else None,
             check=False,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
+            stdout=None,  # Inherit parent, show live output
+            stderr=None,  # Inherit parent, show live output
             text=True,
             timeout=cmd.timeout or DEFAULT_TIMEOUT,
         )
         logger.info("Exit code: %d", result.returncode)
-        if result.stdout:
-            logger.debug("Output:\n%s", result.stdout)
-            # Print stdout progressively (ke console)
-            print(result.stdout)
         if result.returncode != 0:
             logger.error("Stage '%s' failed (exit %d).", cmd.name, result.returncode)
         return result.returncode

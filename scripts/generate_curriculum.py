@@ -3,7 +3,7 @@ from pathlib import Path
 import sys
 
 import torch
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -15,7 +15,8 @@ from data.curriculum.difficulty_scorer import DifficultyScorer
 from utils.logging.custom_logger import get_logger
 from utils.logging.custom_logger import LogLevel
 from utils.reproducibility.seed_everything import seed_everything
-
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -80,8 +81,14 @@ def generate_level_data(
     }
     
     logger.info(f"Generating {num_samples} samples for {level.name}")
-    
-    for idx in tqdm(range(num_samples), desc=f"Level {level.value}"):
+    bar_format = '{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]'
+    for idx in tqdm(
+        range(num_samples),
+        desc=f"Level {level.value}: {level.name.title()}",
+        dynamic_ncols=True,
+        bar_format=bar_format,
+        leave=False
+    ):
         torch.manual_seed(idx)
         
         if level == CurriculumLevel.BASIC:
@@ -144,8 +151,14 @@ def generate_curriculum(args: argparse. Namespace) -> None:
     logger.info(f"Levels: {args.levels}")
     
     all_metadata = {}
-    
-    for level_int in args.levels:
+    bar_format = '{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]'
+    for level_int in tqdm(
+        args.levels,
+        desc="Curriculum Levels",
+        dynamic_ncols=True,
+        bar_format=bar_format,
+        leave=True
+    ):
         level = CurriculumLevel(level_int)
         level_spec = curriculum_config.get_level_spec(level)
         
@@ -160,13 +173,7 @@ def generate_curriculum(args: argparse. Namespace) -> None:
             logger=logger,
         )
         
-        all_metadata[level.name] = {
-            "num_samples": num_samples,
-            "complexity_range": (
-                level_spec.complexity_min,
-                level_spec.complexity_max,
-            ),
-        }
+        all_metadata[level.name] = metadata
         
         logger.info(f"Completed {level.name}:  {num_samples} samples")
     

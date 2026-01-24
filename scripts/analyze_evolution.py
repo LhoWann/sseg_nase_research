@@ -11,7 +11,8 @@ from visualization.plotters.evolution_plotter import PlotStyle
 from visualization.plotters.loss_plotter import LossPlotter
 from utils.logging.custom_logger import get_logger
 from utils.logging.custom_logger import LogLevel
-
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 
 def parse_arguments() -> argparse. Namespace:
     parser = argparse.ArgumentParser(

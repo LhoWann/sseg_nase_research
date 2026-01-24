@@ -13,6 +13,8 @@ from models.ssl.ema_teacher import EMATeacher
 from models.ssl.ssl_losses import CombinedSSLLoss
 from training.lightning_modules.base_ssl_module import BaseSSLModule
 
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 
 class SSEGModule(BaseSSLModule):
     

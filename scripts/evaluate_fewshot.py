@@ -21,7 +21,8 @@ from utils.logging.custom_logger import get_logger
 from utils.logging.custom_logger import LogLevel
 from utils.reproducibility.seed_everything import seed_everything
 from visualization.reporters.result_formatter import ResultFormatter
-
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(

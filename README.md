@@ -12,19 +12,19 @@
 ## Table of Contents
 
 1. [Executive Summary](#executive-summary)
-2. [Research Motivation & Problem Statement](#research-motivation--problem-statement)
+2. [Research Motivation &amp; Problem Statement](#research-motivation--problem-statement)
 3. [Core Contributions](#core-contributions)
 4. [Theoretical Framework](#theoretical-framework)
 5. [Architecture Deep Dive](#architecture-deep-dive)
 6. [Project Structure](#project-structure)
-7. [Installation & Setup](#installation--setup)
+7. [Installation &amp; Setup](#installation--setup)
 8. [Quick Start Guide](#quick-start-guide)
 9. [Detailed Module Documentation](#detailed-module-documentation)
 10. [Experiment Configurations](#experiment-configurations)
-11. [Evaluation & Benchmarking](#evaluation--benchmarking)
+11. [Evaluation &amp; Benchmarking](#evaluation--benchmarking)
 12. [Ablation Studies](#ablation-studies)
 13. [Hardware Optimization](#hardware-optimization)
-14. [Visualization & Reporting](#visualization--reporting)
+14. [Visualization &amp; Reporting](#visualization--reporting)
 15. [Reproducibility](#reproducibility)
 16. [API Reference](#api-reference)
 17. [Troubleshooting](#troubleshooting)
@@ -42,19 +42,17 @@
 This framework introduces a novel **three-pronged approach**:
 
 1. **SSEG (Self-Supervised Evolution with Guidance)**: Automatically grows neural network architectures from a minimal seed network using self-supervised learning signals and curriculum-based guidance.
-
 2. **NASE (Neural Architecture Sparse Evolution)**: Implements complementary sparsity masks that allow network pruning while maintaining performance through importance-based channel selection.
-
 3. **Curriculum Learning Integration**: Progressively increases data complexity from simple geometric shapes to adversarial examples, enabling the network to develop robust representations.
 
 ### Target Metrics
 
-| Metric                | Target | Hardware        |
-| --------------------- | ------ | --------------- |
-| 5-way 1-shot Accuracy | >50%   | RTX 3060 (12GB) |
-| 5-way 5-shot Accuracy | >68%   | RTX 3060 (12GB) |
-| Model Parameters      | <1M    | -               |
-| Inference FLOPs       | <1G    | -               |
+| Metric                | Target | Hardware                |
+| --------------------- | ------ | ----------------------- |
+| 5-way 1-shot Accuracy | >50%   | RTX 3060 (12GB), RTX 3050 (4GB) |
+| 5-way 5-shot Accuracy | >68%   | RTX 3060 (12GB), RTX 3050 (4GB) |
+| Model Parameters      | <1M    | -                       |
+| Inference FLOPs       | <1G    | -                       |
 
 ---
 
@@ -79,7 +77,7 @@ SSEG-NASE addresses these challenges through:
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │   ┌──────────────┐     ┌──────────────┐     ┌──────────────┐                │
-│   │  Curriculum  │────▶│    SSEG      │────▶│    NASE      │               │
+│   │  Curriculum  │────▶│    SSEG      │────▶│    NASE      │             │
 │   │   Learning   │     │  Evolution   │     │   Sparsity   │                │
 │   └──────────────┘     └──────────────┘     └──────────────┘                │
 │         │                     │                     │                       │
@@ -112,13 +110,17 @@ SSEG introduces a novel paradigm for **automatic neural architecture growth**:
 
 The evolution trigger is based on detecting a plateau in the SSL loss:
 
-$$\text{Plateau} = |\mathcal{L}_{SSL}^{(t)} - \mathcal{L}_{SSL}^{(t-w)}| < \epsilon$$
+$$
+\text{Plateau} = |\mathcal{L}_{SSL}^{(t)} - \mathcal{L}_{SSL}^{(t-w)}| < \epsilon
+$$
 
 where $w$ is the window size and $\epsilon$ is the plateau threshold.
 
 Growth decision is then guided by the distillation gap:
 
-$$\text{Should Evolve} = \text{Plateau} \land (\mathcal{L}_{distill} > \tau_{gap})$$
+$$
+\text{Should Evolve} = \text{Plateau} \land (\mathcal{L}_{distill} > \tau_{gap})
+$$
 
 ### 2. Neural Architecture Sparse Evolution (NASE)
 
@@ -126,7 +128,9 @@ NASE implements **importance-based sparsification**:
 
 - **Importance Scoring**: Uses Taylor expansion to estimate parameter importance:
 
-$$I(\theta_i) = |\theta_i \cdot \nabla_{\theta_i} \mathcal{L}|$$
+$$
+I(\theta_i) = |\theta_i \cdot \nabla_{\theta_i} \mathcal{L}|
+$$
 
 - **Complementary Masks**: Generates positive (active) and negative (pruned) masks
 - **Adaptive Pruning**: Maintains minimum channel counts per layer
@@ -135,8 +139,8 @@ $$I(\theta_i) = |\theta_i \cdot \nabla_{\theta_i} \mathcal{L}|$$
 
 Four progressive complexity levels:
 
-| Level | Name            | Description                                           | Samples |
-| ----- | --------------- | ----------------------------------------------------- | ------- |
+| Level | Name                  | Description                                           | Samples |
+| ----- | --------------------- | ----------------------------------------------------- | ------- |
 | 1     | **BASIC**       | Simple geometric shapes (circles, squares, triangles) | 5,000   |
 | 2     | **TEXTURE**     | Sinusoidal patterns with noise                        | 10,000  |
 | 3     | **OBJECT**      | Composite objects with backgrounds                    | 20,000  |
@@ -152,7 +156,9 @@ The framework combines two complementary SSL objectives:
 
 #### 1. Contrastive Learning (NT-Xent Loss)
 
-$$\mathcal{L}_{NT-Xent} = -\log \frac{\exp(\text{sim}(z_i, z_j)/\tau)}{\sum_{k \neq i} \exp(\text{sim}(z_i, z_k)/\tau)}$$
+$$
+\mathcal{L}_{NT-Xent} = -\log \frac{\exp(\text{sim}(z_i, z_j)/\tau)}{\sum_{k \neq i} \exp(\text{sim}(z_i, z_k)/\tau)}
+$$
 
 where:
 
@@ -162,17 +168,23 @@ where:
 
 #### 2. Knowledge Distillation
 
-$$\mathcal{L}_{distill} = \text{MSE}(f_{student}(x), f_{teacher}(x))$$
+$$
+\mathcal{L}_{distill} = \text{MSE}(f_{student}(x), f_{teacher}(x))
+$$
 
 The teacher network is an Exponential Moving Average (EMA) of the student:
 
-$$\theta_{teacher} \leftarrow \alpha \cdot \theta_{teacher} + (1-\alpha) \cdot \theta_{student}$$
+$$
+\theta_{teacher} \leftarrow \alpha \cdot \theta_{teacher} + (1-\alpha) \cdot \theta_{student}
+$$
 
 where $\alpha = 0.999$ (EMA decay).
 
 #### Combined Loss
 
-$$\mathcal{L}_{total} = \mathcal{L}_{NT-Xent} + \lambda \cdot \mathcal{L}_{distill}$$
+$$
+\mathcal{L}_{total} = \mathcal{L}_{NT-Xent} + \lambda \cdot \mathcal{L}_{distill}
+$$
 
 where $\lambda = 0.5$ balances the two objectives.
 
@@ -180,11 +192,15 @@ where $\lambda = 0.5$ balances the two objectives.
 
 Network evolution is guided by a fitness function that balances performance and efficiency:
 
-$$F = \text{Performance} - \alpha \cdot \text{Complexity Penalty}$$
+$$
+F = \text{Performance} - \alpha \cdot \text{Complexity Penalty}
+$$
 
 where:
 
-$$\text{Complexity Penalty} = \frac{\text{FLOPs}}{\text{Target FLOPs}} + \frac{\text{Params}}{\text{Target Params}}$$
+$$
+\text{Complexity Penalty} = \frac{\text{FLOPs}}{\text{Target FLOPs}} + \frac{\text{Params}}{\text{Target Params}}
+$$
 
 ---
 
@@ -298,9 +314,9 @@ sseg_nase_research/
 │   │   ├── few_shot_augmentation.py # Evaluation-time augmentations
 │   │   └── ssl_augmentation.py      # SimCLR-style SSL augmentations
 │   ├── benchmarks/                  # Standard few-shot datasets
-│   │   ├── cifar_fs_dataset.py      # CIFAR-FS implementation
+│   │   ├── cifar_fs_dataset.py      # CIFAR-FS implementation (few-shot evaluation)
 │   │   ├── episode_sampler.py       # N-way K-shot episode sampling
-│   │   └── minimagenet_dataset.py   # Mini-ImageNet implementation
+│   │   └── minimagenet_dataset.py   # Mini-ImageNet implementation (few-shot evaluation)
 │   ├── curriculum/                  # Synthetic curriculum data
 │   │   ├── curriculum_dataset.py    # Curriculum dataset wrapper
 │   │   ├── curriculum_scheduler.py  # Level progression manager
@@ -445,9 +461,10 @@ source venv/bin/activate  # Linux/Mac
 pip install -r requirements.txt
 ```
 
+
 ### Step 4: Prepare Datasets (Optional)
 
-For few-shot evaluation on standard benchmarks:
+For few-shot evaluation on standard benchmarks (**Mini-ImageNet** and **CIFAR-FS**):
 
 ```bash
 # Download Mini-ImageNet
@@ -459,18 +476,41 @@ mkdir -p datasets/cifar_fs
 # Download from: https://github.com/bertinetto/r2d2
 ```
 
+Both datasets must be organized as:
+
+```
+datasets/
+  minimagenet/
+    train/
+    val/
+    test/
+  cifar_fs/
+    train/
+    val/
+    test/
+```
+
 ---
 
 ## Quick Start Guide
 
 ### Training with Default Configuration
 
+
 ```bash
+# For RTX 3050 (4GB)
 python scripts/train_sseg.py \
-    --experiment-name my_first_experiment \
-    --hardware rtx3060 \
-    --max-epochs 100 \
-    --seed 42
+  --experiment-name my_first_experiment \
+  --hardware rtx3050 \
+  --max-epochs 100 \
+  --seed 42
+
+# For RTX 3060 (12GB)
+python scripts/train_sseg.py \
+  --experiment-name my_first_experiment \
+  --hardware rtx3060 \
+  --max-epochs 100 \
+  --seed 42
 ```
 
 ### Training with Custom Configuration
@@ -482,24 +522,46 @@ python scripts/train_sseg.py \
     --data-dir ./datasets
 ```
 
-### Evaluating a Trained Model
 
+### Evaluating a Trained Model (Mini-ImageNet or CIFAR-FS)
+
+#### Mini-ImageNet
 ```bash
 python scripts/evaluate_fewshot.py \
-    --checkpoint outputs/my_experiment/checkpoints/best.ckpt \
-    --data-dir datasets/minimagenet \
-    --num-ways 5 \
-    --num-shots 1 5 \
-    --num-episodes 600
+  --checkpoint outputs/my_experiment/checkpoints/best.ckpt \
+  --data-dir datasets/minimagenet \
+  --num-ways 5 \
+  --num-shots 1 5 \
+  --num-episodes 600
 ```
+
+#### CIFAR-FS
+```bash
+python scripts/evaluate_fewshot.py \
+  --checkpoint outputs/my_experiment/checkpoints/best.ckpt \
+  --data-dir datasets/cifar_fs \
+  --num-ways 5 \
+  --num-shots 1 5 \
+  --num-episodes 600
+```
+
+You can also configure both datasets for evaluation in the pipeline JSON config (see Evaluation & Benchmarking section).
 
 ### Running Ablation Studies
 
+
 ```bash
+# For RTX 3050 (4GB)
 python scripts/run_ablation.py \
-    --output-dir outputs/ablation \
-    --hardware rtx3060 \
-    --max-epochs 100
+  --output-dir outputs/ablation \
+  --hardware rtx3050 \
+  --max-epochs 100
+
+# For RTX 3060 (12GB)
+python scripts/run_ablation.py \
+  --output-dir outputs/ablation \
+  --hardware rtx3060 \
+  --max-epochs 100
 ```
 
 ---
@@ -534,8 +596,7 @@ Pre-defined profiles for different GPUs:
 | Profile  | Batch Size | Precision  | Accumulation | Memory |
 | -------- | ---------- | ---------- | ------------ | ------ |
 | RTX 3060 | 48         | 16-mixed   | 3            | 12 GB  |
-| RTX 3090 | 128        | 16-mixed   | 1            | 24 GB  |
-| A100     | 256        | bf16-mixed | 1            | 40 GB  |
+| RTX 3050 | 24         | 16-mixed   | 4            | 4 GB   |
 
 #### Evolution Configuration
 
@@ -694,26 +755,31 @@ class EvolutionCallback(Callback):
 
 ### 5. Evaluation System (`evaluation/`)
 
-#### Few-Shot Evaluation
+
+#### Few-Shot Evaluation (Mini-ImageNet & CIFAR-FS)
+
+The evaluation system supports both **Mini-ImageNet** and **CIFAR-FS**. The evaluation script will automatically use the correct dataset class based on the `--data-dir` argument (or config). For Mini-ImageNet, it uses `MiniImageNetDataset`; for CIFAR-FS, it uses `CIFARFSDataset`.
 
 ```python
 evaluator = FewShotEvaluator(
-    model=model,
-    config=FewShotConfig(
-        num_ways=5,
-        num_shots=(1, 5),
-        num_queries_per_class=15,
-        num_episodes=600,
-        distance_metric="cosine",
-        normalize_features=True
-    ),
-    device="cuda"
+  model=model,
+  config=FewShotConfig(
+    num_ways=5,
+    num_shots=(1, 5),
+    num_queries_per_class=15,
+    num_episodes=600,
+    distance_metric="cosine",
+    normalize_features=True
+  ),
+  device="cuda"
 )
 
 # Run evaluation
 confidence_interval, accuracies = evaluator.run_evaluation(episode_sampler)
 print(f"Accuracy: {confidence_interval}")  # e.g., "68.42±0.35"
 ```
+
+**Note:** To evaluate on CIFAR-FS, simply set `--data-dir datasets/cifar_fs` or the equivalent config. The protocol and metrics are identical for both datasets.
 
 #### Efficiency Metrics
 
@@ -735,6 +801,7 @@ metrics = efficiency_evaluator.evaluate()
 
 ## Experiment Configurations
 
+
 ### Full Pipeline (`exp_full_pipeline.yaml`)
 
 Complete SSEG-NASE with all components:
@@ -743,8 +810,22 @@ Complete SSEG-NASE with all components:
 experiment_name: sseg_nase_full_pipeline
 seed: 42
 
+
+# Example hardware config for RTX 3050 (4GB)
+hardware:
+  name: rtx3050
+  batch_size: 24
+  gradient_accumulation_steps: 4
+  num_workers: 2
+  precision: 16-mixed
+
+# Example hardware config for RTX 3060 (12GB)
 hardware:
   name: rtx3060
+  batch_size: 48
+  gradient_accumulation_steps: 3
+  num_workers: 4
+  precision: 16-mixed
 
 curriculum:
   image_size: 84
@@ -771,7 +852,26 @@ ssl:
     distillation_weight: 0.5
 ```
 
-### SSEG-Only Ablation (`exp_ablation_sseg_only.yaml`)
+
+#### Evaluation on Both Datasets (Config Example)
+
+In your pipeline config (e.g., `configs_experiments_exp_full_pipeline_rtx3050.json`), you can specify both datasets for evaluation:
+
+```json
+  "evaluate": {
+    "datasets": [
+      {"name": "minimagenet", "root_dir": "datasets/minimagenet", "split": "test"},
+      {"name": "cifar_fs", "root_dir": "datasets/cifar_fs", "split": "test"}
+    ],
+    "num_ways": 5,
+    "num_shots": [1, 5],
+    "num_episodes": 600,
+    "device": "cuda",
+    "seed": 42
+  }
+```
+
+This will run evaluation on both Mini-ImageNet and CIFAR-FS sequentially.
 
 Network evolution without NASE sparsity:
 
@@ -801,10 +901,57 @@ evolution:
 
 ### Standard Few-Shot Benchmarks
 
-The framework supports evaluation on:
+
+The framework supports evaluation on **both** standard few-shot benchmarks:
 
 1. **Mini-ImageNet**: 100 classes, 600 images/class, 84×84 resolution
 2. **CIFAR-FS**: 100 classes, 600 images/class, 32×32 (resized to 84×84)
+
+You can evaluate on either or both datasets by specifying the appropriate `--data-dir` (for CLI) or by configuring the evaluation section in your pipeline JSON (see below). Both datasets are fully supported in the evaluation pipeline and config files.
+
+#### Example: Evaluating on Mini-ImageNet
+
+```bash
+python scripts/evaluate_fewshot.py \
+    --checkpoint outputs/my_experiment/checkpoints/best.ckpt \
+    --data-dir datasets/minimagenet \
+    --num-ways 5 \
+    --num-shots 1 5 \
+    --num-episodes 600
+```
+
+#### Example: Evaluating on CIFAR-FS
+
+```bash
+python scripts/evaluate_fewshot.py \
+    --checkpoint outputs/my_experiment/checkpoints/best.ckpt \
+    --data-dir datasets/cifar_fs \
+    --num-ways 5 \
+    --num-shots 1 5 \
+    --num-episodes 600
+```
+
+#### Example: Config-based Evaluation (Full Pipeline)
+
+In `configs_experiments_exp_full_pipeline_rtx3050.json`:
+
+```json
+  "evaluate": {
+    "datasets": [
+      {"name": "minimagenet", "root_dir": "datasets/minimagenet", "split": "test"},
+      {"name": "cifar_fs", "root_dir": "datasets/cifar_fs", "split": "test"}
+    ],
+    "num_ways": 5,
+    "num_shots": [1, 5],
+    "num_episodes": 600,
+    "device": "cuda",
+    "seed": 42
+  }
+```
+
+This will run evaluation on both datasets sequentially and output results for each.
+
+**Note:** The evaluation protocol (N-way K-shot, 600 episodes, etc.) is identical for both datasets. The only difference is the dataset root directory and split.
 
 ### Evaluation Protocol
 
@@ -832,14 +979,14 @@ Following standard few-shot learning protocols:
 
 ### Baseline Comparisons
 
-| Method        | Backbone    | Params  | FLOPs   | 1-shot  | 5-shot  |
-| ------------- | ----------- | ------- | ------- | ------- | ------- |
-| ProtoNet      | Conv-4      | 0.11M   | 50M     | 49.42   | 68.20   |
-| MatchingNet   | Conv-4      | 0.11M   | 50M     | 43.56   | 55.31   |
-| MAML          | Conv-4      | 0.11M   | 50M     | 48.70   | 63.11   |
-| RelationNet   | Conv-4      | 0.23M   | 90M     | 50.44   | 65.32   |
-| SimCLR+Linear | ResNet-18   | 11.2M   | 1.82G   | 51.23   | 69.45   |
-| DINO+Linear   | ViT-S       | 22M     | 4.61G   | 53.12   | 71.20   |
+| Method              | Backbone          | Params        | FLOPs         | 1-shot        | 5-shot        |
+| ------------------- | ----------------- | ------------- | ------------- | ------------- | ------------- |
+| ProtoNet            | Conv-4            | 0.11M         | 50M           | 49.42         | 68.20         |
+| MatchingNet         | Conv-4            | 0.11M         | 50M           | 43.56         | 55.31         |
+| MAML                | Conv-4            | 0.11M         | 50M           | 48.70         | 63.11         |
+| RelationNet         | Conv-4            | 0.23M         | 90M           | 50.44         | 65.32         |
+| SimCLR+Linear       | ResNet-18         | 11.2M         | 1.82G         | 51.23         | 69.45         |
+| DINO+Linear         | ViT-S             | 22M           | 4.61G         | 53.12         | 71.20         |
 | **SSEG-NASE** | **Evolved** | **<1M** | **<1G** | **TBD** | **TBD** |
 
 ---
@@ -848,15 +995,15 @@ Following standard few-shot learning protocols:
 
 ### Ablation Configurations
 
-| ID  | Configuration       | SSEG | NASE | Curriculum | Distillation |
-| --- | ------------------- | ---- | ---- | ---------- | ------------ |
-| A1  | Seed Only           | ✗    | ✗   | ✗          | ✗           |
-| A2  | SSL Only            | ✗    | ✗   | ✗          | ✗           |
-| A3  | SSEG Only           | ✓    | ✗   | ✗          | ✗           |
-| A4  | SSEG + Curriculum   | ✓    | ✗   | ✓          | ✗           |
-| A5  | SSEG + Distillation | ✓    | ✗   | ✗          | ✓           |
-| A6  | SSEG + NASE         | ✓    | ✓   | ✗          | ✗           |
-| A7  | Full Pipeline       | ✓    | ✓   | ✓          | ✓           |
+| ID | Configuration       | SSEG | NASE | Curriculum | Distillation |
+| -- | ------------------- | ---- | ---- | ---------- | ------------ |
+| A1 | Seed Only           | ✗   | ✗   | ✗         | ✗           |
+| A2 | SSL Only            | ✗   | ✗   | ✗         | ✗           |
+| A3 | SSEG Only           | ✓   | ✗   | ✗         | ✗           |
+| A4 | SSEG + Curriculum   | ✓   | ✗   | ✓         | ✗           |
+| A5 | SSEG + Distillation | ✓   | ✗   | ✗         | ✓           |
+| A6 | SSEG + NASE         | ✓   | ✓   | ✗         | ✗           |
+| A7 | Full Pipeline       | ✓   | ✓   | ✓         | ✓           |
 
 ### Running Ablations
 
@@ -872,9 +1019,9 @@ python scripts/run_ablation.py --ablations SSEG_ONLY FULL_PIPELINE
 
 ## Hardware Optimization
 
-### RTX 3060 Optimization Strategy
+### RTX 3060 & 3050 Optimization Strategy
 
-Given the 12GB VRAM constraint:
+#### RTX 3060 (12GB)
 
 1. **Mixed Precision (FP16)**: Reduces memory footprint by ~50%
 2. **Gradient Accumulation**: Simulates larger batch sizes (48 × 3 = 144 effective)
@@ -883,15 +1030,37 @@ Given the 12GB VRAM constraint:
 
 ```python
 @dataclass
+class RTX3050Config(HardwareConfig):
+  device: str = "cuda"
+  precision: str = "16-mixed"
+  batch_size: int = 24
+  gradient_accumulation_steps: int = 4
+  num_workers: int = 2
+  pin_memory: bool = True
+  persistent_workers: bool = True
+  max_memory_gb: float = 4.0
+
+@dataclass
 class RTX3060Config(HardwareConfig):
-    device: str = "cuda"
-    precision: str = "16-mixed"
-    batch_size: int = 48
-    gradient_accumulation_steps: int = 3
-    num_workers: int = 4
-    pin_memory: bool = True
-    persistent_workers: bool = True
-    max_memory_gb: float = 12.0
+  device: str = "cuda"
+  precision: str = "16-mixed"
+  batch_size: int = 48
+  gradient_accumulation_steps: int = 3
+  num_workers: int = 4
+  pin_memory: bool = True
+  persistent_workers: bool = True
+  max_memory_gb: float = 12.0
+```
+
+class RTX3050Config(HardwareConfig):
+  device: str = "cuda"
+  precision: str = "16-mixed"
+  batch_size: int = 24
+  gradient_accumulation_steps: int = 4
+  num_workers: int = 2
+  pin_memory: bool = True
+  persistent_workers: bool = True
+  max_memory_gb: float = 4.0
 ```
 
 ### Memory Monitoring
@@ -1028,6 +1197,19 @@ set_random_state(state)
 
 ## Troubleshooting
 
+
+### Evaluation Dataset Selection
+
+**Symptom:** Evaluation fails or loads the wrong dataset.
+
+**Solutions:**
+1. Ensure you specify the correct `--data-dir` (e.g., `datasets/minimagenet` or `datasets/cifar_fs`).
+2. For config-based runs, check that the `evaluate.datasets` field lists the correct root directories and splits for each dataset.
+3. The evaluation script will use `MiniImageNetDataset` for Mini-ImageNet and `CIFARFSDataset` for CIFAR-FS automatically.
+4. If you add new datasets, ensure the evaluation script is updated to support them.
+
+---
+
 ### Common Issues
 
 #### Out of Memory (OOM)
@@ -1042,10 +1224,10 @@ set_random_state(state)
 4. Use FP16 precision
 
 ```python
-# Reduce memory usage
-hardware_config = RTX3060Config()
-hardware_config.batch_size = 32  # Reduce from 48
-hardware_config.gradient_accumulation_steps = 4  # Increase from 3
+# Reduce memory usage (example for RTX3050)
+hardware_config = RTX3050Config()
+hardware_config.batch_size = 16  # Reduce from 24 if OOM
+hardware_config.gradient_accumulation_steps = 6  # Increase if needed
 ```
 
 #### Training Not Converging
@@ -1114,4 +1296,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <p align="center">
   <strong>SSEG-NASE</strong> - Efficient Few-Shot Learning Through Neural Architecture Evolution
 </p>
-

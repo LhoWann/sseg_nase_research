@@ -29,6 +29,8 @@ from utils.io.config_loader import ConfigLoader
 from utils.logging.custom_logger import get_logger
 from utils.logging.custom_logger import LogLevel
 from utils.reproducibility.seed_everything import seed_everything
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 
 
 def parse_arguments() -> argparse. Namespace:
@@ -64,7 +66,7 @@ def parse_arguments() -> argparse. Namespace:
         "--hardware",
         type=str,
         default="rtx3060",
-        choices=["rtx3060", "rtx3090", "a100"],
+        choices=["rtx3050", "rtx3060"],
         help="Hardware profile for optimization",
     )
     parser.add_argument(

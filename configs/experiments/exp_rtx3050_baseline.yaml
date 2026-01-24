@@ -1,0 +1,40 @@
+experiment_name: sseg_nase_rtx3050_baseline
+seed: 42
+debug_mode: false
+
+hardware:
+  name: rtx3050
+  batch_size: 24
+  gradient_accumulation_steps: 4
+  num_workers: 2
+  precision: 16-mixed
+
+curriculum:
+  image_size: 84
+  transition_strategy: gradual
+  gradual_mixing_ratio: 0.2
+
+evolution:
+  seed_network:
+    architecture: cnn
+    initial_channels: 16
+    initial_blocks: 3
+    activation: relu
+  
+  growth:
+    max_blocks: 12
+    max_channels: 256
+    channel_expansion_ratio: 1.5
+    plateau_window_size: 10
+    plateau_threshold: 0.0001
+    distillation_gap_threshold:  0.1
+  
+  nase:
+    sparsity_ratio: 0.3
+    pruning_interval_epochs: 10
+    importance_metric: taylor
+    min_channels_per_layer: 8
+  
+  fitness:
+    alpha_complexity_penalty: 0.1
+    target_flops_giga:  1.0

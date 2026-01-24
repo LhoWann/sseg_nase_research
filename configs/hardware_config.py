@@ -51,52 +51,29 @@ class RTX3060Config(HardwareConfig):
 
 
 @dataclass(frozen=True)
-class RTX3090Config(HardwareConfig):
-    device: Literal["cuda", "cpu", "mps"] = "cuda"
-    accelerator:  Literal["gpu", "cpu"] = "gpu"
-    devices:  int = 1
-    precision:  Literal["32", "16-mixed", "bf16-mixed"] = "16-mixed"
-    
-    batch_size: int = 128
-    num_workers: int = 8
-    pin_memory:  bool = True
-    persistent_workers: bool = True
-    
-    gradient_accumulation_steps: int = 1
-    gradient_clip_val:  float = 1.0
-    max_memory_gb: float = 24.0
-
-
-@dataclass(frozen=True)
-class A100Config(HardwareConfig):
+class RTX3050Config(HardwareConfig):
     device: Literal["cuda", "cpu", "mps"] = "cuda"
     accelerator: Literal["gpu", "cpu"] = "gpu"
     devices: int = 1
-    precision: Literal["32", "16-mixed", "bf16-mixed"] = "bf16-mixed"
-    
-    batch_size: int = 256
-    num_workers: int = 8
+    precision: Literal["32", "16-mixed", "bf16-mixed"] = "16-mixed"
+    batch_size: int = 24 
+    num_workers: int = 2
     pin_memory: bool = True
     persistent_workers: bool = True
-    
-    gradient_accumulation_steps: int = 1
+    gradient_accumulation_steps: int = 4
     gradient_clip_val: float = 1.0
-    max_memory_gb: float = 40.0
+    max_memory_gb: float = 4.0
 
 
 def get_hardware_config(name: str) -> HardwareConfig:
     configs = {
         "rtx3060": RTX3060Config(),
-        "rtx3090":  RTX3090Config(),
-        "a100": A100Config(),
+        "rtx3050": RTX3050Config(),
     }
-    
     normalized_name = name.lower().replace("-", "").replace("_", "")
-    
     if normalized_name not in configs:
         raise ValueError(
             f"Unknown hardware config: {name}. "
             f"Available:  {list(configs.keys())}"
         )
-    
     return configs[normalized_name]

@@ -9,6 +9,8 @@ from torch.optim import Optimizer
 
 from configs.base_config import BaseConfig
 
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 
 class BaseSSLModule(pl. LightningModule, ABC):
     

@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 from configs.evaluation_config import FewShotConfig
 from data.benchmarks.episode_sampler import Episode

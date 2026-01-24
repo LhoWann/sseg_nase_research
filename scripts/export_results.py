@@ -14,7 +14,8 @@ from experiments.comparisons.baseline_comparisons import BaselineComparison
 from experiments.comparisons.baseline_comparisons import BASELINE_SPECS
 from utils.logging.custom_logger import get_logger
 from utils.logging.custom_logger import LogLevel
-
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
