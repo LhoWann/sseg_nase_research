@@ -21,6 +21,8 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 
 # Constants
 DEFAULT_TIMEOUT: int = 60 * 60 * 24  # 24 hours for long runs (can be overridden)

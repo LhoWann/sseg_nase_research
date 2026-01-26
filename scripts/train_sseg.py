@@ -195,7 +195,7 @@ def train(config: BaseConfig, args: argparse. Namespace) -> SSEGModule:
     callbacks = create_callbacks(config)
     tb_logger = create_logger_instance(config)
     
-    max_epochs_total = args.max_epochs * 4
+    max_epochs_total = args.max_epochs
     
     trainer = pl.Trainer(
         accelerator=config.hardware.accelerator,
@@ -251,7 +251,8 @@ def train(config: BaseConfig, args: argparse. Namespace) -> SSEGModule:
     ssl_history, _ = module.get_loss_history()
     final_ssl_loss = ssl_history[-1] if ssl_history else 0.0
     
-    checkpoint_manager.save(
+    # Save checkpoint with epoch naming
+    last_ckpt_path = checkpoint_manager.save(
         model=module.backbone,
         optimizer=optimizer,
         epoch=trainer.current_epoch,
@@ -260,6 +261,10 @@ def train(config: BaseConfig, args: argparse. Namespace) -> SSEGModule:
         architecture_summary=module.backbone.get_architecture_summary(),
         mutation_history=mutation_history,
     )
+    # Also save as final_model.pt for compatibility
+    import shutil
+    final_model_path = config.paths.checkpoints / "final_model.pt"
+    shutil.copyfile(last_ckpt_path, final_model_path)
     
     logger.info("Training completed successfully")
     logger.log_architecture(

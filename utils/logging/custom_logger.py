@@ -23,10 +23,9 @@ class LogRecord:
     
     def format(self, include_timestamp: bool = True) -> str:
         level_name = self.level.name
-        
         if include_timestamp:
-            return f"[{self.timestamp}] [{level_name:8s}] [{self.module}] {self.message}"
-        return f"[{level_name:8s}] [{self.module}] {self.message}"
+            return f"[{self.timestamp}] [{level_name}] [{self.module}] {self.message}"
+        return f"[{level_name}] [{self.module}] {self.message}"
 
 
 class CustomLogger:

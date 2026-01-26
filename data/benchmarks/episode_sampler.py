@@ -47,6 +47,12 @@ class EpisodeSampler:
     
     def sample_episode(self) -> Episode:
         available_classes = list(self._class_indices.keys())
+        if len(available_classes) < self._num_ways:
+            raise ValueError(
+                f"Not enough classes to sample {self._num_ways} ways. "
+                f"Available classes: {len(available_classes)}. "
+                f"Check your dataset and configuration."
+            )
         selected_classes = random.sample(available_classes, self._num_ways)
         
         support_images = []

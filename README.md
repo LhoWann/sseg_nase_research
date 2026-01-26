@@ -72,23 +72,23 @@ Few-shot learning—the ability to learn new concepts from very limited examples
 SSEG-NASE addresses these challenges through:
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
+┌──────────────────────────────────────────────────────────────────────────────┐
 │                        SSEG-NASE Framework Overview                         │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│   ┌──────────────┐     ┌──────────────┐     ┌──────────────┐                │
-│   │  Curriculum  │────▶│    SSEG      │────▶│    NASE      │             │
-│   │   Learning   │     │  Evolution   │     │   Sparsity   │                │
-│   └──────────────┘     └──────────────┘     └──────────────┘                │
-│         │                     │                     │                       │
-│         ▼                     ▼                     ▼                       │
-│   ┌──────────────┐     ┌──────────────┐     ┌──────────────┐                │
-│   │ Progressive  │     │  Automatic   │     │  Efficient   │                │
-│   │  Difficulty  │     │   Growth     │     │  Inference   │                │
-│   └──────────────┘     └──────────────┘     └──────────────┘                │
-│                                                                             │
-│   Result: Hardware-efficient model with strong few-shot performance         │
-└─────────────────────────────────────────────────────────────────────────────┘
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   ┌──────────────┐     ┌──────────────┐     ┌──────────────┐                  │
+│   │  Curriculum  │────▶│    SSEG      │────▶│    NASE      │                  │
+│   │   Learning   │     │  Evolution   │     │   Sparsity   │                  │
+│   └──────────────┘     └──────────────┘     └──────────────┘                  │
+│         │                     │                     │                        │
+│         ▼                     ▼                     ▼                        │
+│   ┌──────────────┐     ┌──────────────┐     ┌──────────────┐                  │
+│   │ Progressive  │     │  Automatic   │     │  Efficient   │                  │
+│   │  Difficulty  │     │   Growth     │     │  Inference   │                  │
+│   └──────────────┘     └──────────────┘     └──────────────┘                  │
+│                                                                              │
+│   Result: Hardware-efficient model with strong few-shot performance           │
+└──────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -493,6 +493,20 @@ datasets/
 ---
 
 ## Quick Start Guide
+
+### Running the Full Pipeline with CLI Runner
+
+You can run the entire pipeline (curriculum, training, evaluation, etc.) using the CLI runner script:
+
+```bash
+# For RTX 3050
+python scripts_cli_run.py configs_experiments_exp_full_pipeline_rtx3050.json
+
+# For RTX 3060
+python scripts_cli_run.py configs_experiments_exp_full_pipeline_rtx3060.json
+```
+
+Pastikan file konfigurasi JSON sudah sesuai hardware dan kebutuhan Anda. Pipeline akan berjalan otomatis sesuai urutan dan tahapan yang diaktifkan di file config.
 
 ### Training with Default Configuration
 

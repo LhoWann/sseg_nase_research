@@ -32,8 +32,9 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--checkpoint",
         type=Path,
-        required=True,
-        help="Path to model checkpoint",
+        required=False,
+        default=None,
+        help="Path to model checkpoint. If not provided, will auto-detect the latest or best checkpoint in the experiment's checkpoints directory.",
     )
     parser.add_argument(
         "--data-dir",
@@ -84,7 +85,7 @@ def parse_arguments() -> argparse.Namespace:
 
 
 def load_model(checkpoint_path: Path, device: str) -> EvolvableCNN:
-    checkpoint = torch.load(checkpoint_path, map_location=device)
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     
     from configs.evolution_config import EvolutionConfig
     from configs.evolution_config import SeedNetworkConfig
@@ -115,13 +116,44 @@ def evaluate(args: argparse. Namespace) -> dict:
         level=LogLevel.INFO,
         log_file=args.output_dir / "evaluation.log",
     )
-    
+
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    
+
+    checkpoint_path = args.checkpoint
+    if checkpoint_path is None or not checkpoint_path.exists():
+        experiment_name = args.output_dir.parent.name if args.output_dir.name == "evaluation" else args.output_dir.name
+        # Try default checkpoints dir first
+        checkpoints_dir = args.output_dir.parent / "checkpoints"
+        found_checkpoint = None
+        if checkpoints_dir.exists():
+            from utils.io.checkpoint_manager import CheckpointManager
+            manager = CheckpointManager(checkpoint_dir=checkpoints_dir, experiment_name=experiment_name)
+            found_checkpoint = manager.get_best_checkpoint() or manager.get_latest_checkpoint()
+        # If not found, search all subdirs of output_dir.parent for a valid checkpoints dir
+        if not found_checkpoint or not found_checkpoint.exists():
+            parent_dir = args.output_dir.parent
+            for subdir in parent_dir.iterdir():
+                if subdir.is_dir():
+                    candidate = subdir / "checkpoints"
+                    if candidate.exists():
+                        from utils.io.checkpoint_manager import CheckpointManager
+                        manager = CheckpointManager(checkpoint_dir=candidate, experiment_name=experiment_name)
+                        cp = manager.get_best_checkpoint() or manager.get_latest_checkpoint()
+                        if cp and cp.exists():
+                            found_checkpoint = cp
+                            checkpoints_dir = candidate
+                            break
+        if not found_checkpoint or not found_checkpoint.exists():
+            logger.error(f"Could not find any valid checkpoints for experiment: {experiment_name} in {args.output_dir.parent}")
+            raise FileNotFoundError(f"No checkpoints found for experiment: {experiment_name} in {args.output_dir.parent}")
+        checkpoint_path = found_checkpoint
+        logger.info(f"Auto-detected checkpoint: {checkpoint_path}")
+    else:
+        logger.info(f"Loading model from: {checkpoint_path}")
+
     seed_everything(args.seed, deterministic=True)
-    
-    logger.info(f"Loading model from: {args.checkpoint}")
-    model = load_model(args.checkpoint, args.device)
+
+    model = load_model(checkpoint_path, args.device)
     
     architecture = model.get_architecture_summary()
     logger.log_architecture(
@@ -151,7 +183,7 @@ def evaluate(args: argparse. Namespace) -> dict:
     logger.info(f"Inference Time: {efficiency_metrics.inference_time_ms:.2f}ms")
     
     results = {
-        "checkpoint": str(args.checkpoint),
+        "checkpoint": str(checkpoint_path),
         "architecture": architecture,
         "efficiency":  {
             "num_parameters": efficiency_metrics.num_parameters,
@@ -171,7 +203,7 @@ def evaluate(args: argparse. Namespace) -> dict:
     )
     
     for num_shots in args.num_shots:
-        logger.info(f"Evaluating {args.num_ways}-way {num_shots}-shot...")
+        logger.info(f"Evaluating {args.num_ways}-way {num_shots}-shot.")
         
         episode_sampler = EpisodeSampler(
             dataset=test_dataset,

@@ -1,5 +1,5 @@
 {
-  "output_dir": "outputs/sseg_nase_full_v1",
+  "output_dir": "outputs/rtx3060_full_pipeline",
   "data_dir": "datasets",
   "continue_on_error": false,
   "stages": {
@@ -17,15 +17,18 @@
     "levels": [1, 2, 3, 4]
   },
   "train": {
-    "experiment_name": "sseg_nase_full_v1",
+    "experiment_name": "sseg_nase_full_pipeline_rtx3060",
     "hardware": "rtx3060",
     "max_epochs": 100,
     "seed": 42,
     "debug": false,
-    "config": "configs/experiments/exp_full_pipeline.yaml"
+    "config": "configs/experiments/exp_full_pipeline_rtx3060.yaml"
   },
   "evaluate": {
-    "data_dir": "datasets/minimagenet",
+    "datasets": [
+      {"name": "minimagenet", "root_dir": "datasets/minimagenet", "split": "test"},
+      {"name": "cifar_fs", "root_dir": "datasets/cifar_fs", "split": "test"}
+    ],
     "num_ways": 5,
     "num_shots": [1, 5],
     "num_episodes": 600,
