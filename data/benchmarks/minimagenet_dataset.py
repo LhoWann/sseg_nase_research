@@ -66,21 +66,38 @@ class MiniImageNetDataset(Dataset):
     
     def _load_dataset(self) -> None:
         split_dir = self._root_dir / self._split
-        
         if not split_dir.exists():
             raise FileNotFoundError(f"Directory not found: {split_dir}")
-        
+
+        valid_extensions = {".jpg", ".jpeg", ".png", ".JPEG", ".JPG", ".PNG"}
         class_dirs = sorted([d for d in split_dir.iterdir() if d.is_dir()])
-        
-        for class_idx, class_dir in enumerate(class_dirs):
-            class_name = class_dir.name
-            self._class_to_idx[class_name] = class_idx
-            self._idx_to_class[class_idx] = class_name
-            
-            valid_extensions = {".jpg", ".jpeg", ".png", ". JPEG", ".JPG", ".PNG"}
-            for image_path in class_dir.iterdir():
-                if image_path.suffix in valid_extensions:
-                    self._samples.append((image_path, class_idx))
+
+        if class_dirs:
+            # Standard: subdirectory per class
+            for class_idx, class_dir in enumerate(class_dirs):
+                class_name = class_dir.name
+                self._class_to_idx[class_name] = class_idx
+                self._idx_to_class[class_idx] = class_name
+                for image_path in class_dir.iterdir():
+                    if image_path.suffix in valid_extensions:
+                        self._samples.append((image_path, class_idx))
+        else:
+            # Flat directory: extract class from filename prefix
+            class_name_set = set()
+            image_files = [f for f in split_dir.iterdir() if f.is_file() and f.suffix in valid_extensions]
+            for image_path in image_files:
+                # Assume class is prefix before first '_'
+                fname = image_path.name
+                class_name = fname.split('_')[0]
+                class_name_set.add(class_name)
+            class_name_list = sorted(class_name_set)
+            self._class_to_idx = {name: idx for idx, name in enumerate(class_name_list)}
+            self._idx_to_class = {idx: name for name, idx in self._class_to_idx.items()}
+            for image_path in image_files:
+                fname = image_path.name
+                class_name = fname.split('_')[0]
+                class_idx = self._class_to_idx[class_name]
+                self._samples.append((image_path, class_idx))
     
     def __len__(self) -> int:
         return len(self._samples)

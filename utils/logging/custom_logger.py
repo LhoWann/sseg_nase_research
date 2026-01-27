@@ -170,7 +170,7 @@ class CustomLogger:
     ) -> None:
         message = (
             f"Evaluation: {num_shots}-shot "
-            f"accuracy={mean_accuracy:.2f}%±{margin:.2f}%"
+            f"accuracy={mean_accuracy:.2f}%\u00b1{margin:.2f}%"
         )
         self.info(message)
     

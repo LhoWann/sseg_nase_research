@@ -70,7 +70,9 @@ def load_evolution_data(checkpoint_dir: Path) -> dict:
     import torch
     
     for ckpt_path in checkpoints: 
-        checkpoint = torch.load(ckpt_path, map_location="cpu")
+        # PyTorch 2.6+ sets weights_only=True by default, which can cause UnpicklingError for custom classes.
+        # Setting weights_only=False restores previous behavior. Only do this if you trust the checkpoint source.
+        checkpoint = torch.load(ckpt_path, map_location="cpu", weights_only=False)
         
         metadata = checkpoint.get("metadata", {})
         architecture = checkpoint.get("architecture_summary", {})
@@ -144,14 +146,11 @@ def generate_visualizations(
     output_dir: Path,
     plot_format: str,
 ) -> list[Path]:
-    style = PlotStyle(save_format=plot_format)
-    
+    style = PlotStyle(save_format=plot_format.strip() if isinstance(plot_format, str) else plot_format)
     evolution_plotter = EvolutionPlotter(output_dir, style)
     loss_plotter = LossPlotter(output_dir, style)
-    
     generated_files = []
-    
-    if evolution_data["epochs"] and evolution_data["num_params"]: 
+    if evolution_data["epochs"] and evolution_data["num_params"]:
         trajectory_path = evolution_plotter.plot_architecture_trajectory(
             epochs=evolution_data["epochs"],
             num_params=evolution_data["num_params"],
@@ -160,8 +159,7 @@ def generate_visualizations(
             level_boundaries=evolution_data.get("level_boundaries"),
         )
         generated_files.append(trajectory_path)
-    
-    if evolution_data["channel_history"]: 
+    if evolution_data["channel_history"]:
         valid_channels = [ch for ch in evolution_data["channel_history"] if ch]
         if valid_channels:
             channel_path = evolution_plotter.plot_channel_progression(
@@ -169,26 +167,22 @@ def generate_visualizations(
                 channel_history=valid_channels,
             )
             generated_files.append(channel_path)
-    
     mutation_counts = {}
-    for mt in evolution_data["mutation_types"]: 
+    for mt in evolution_data["mutation_types"]:
         mutation_counts[mt] = mutation_counts.get(mt, 0) + 1
-    
-    if mutation_counts: 
+    if mutation_counts:
         mutation_path = evolution_plotter.plot_mutation_distribution(
             mutation_types=list(mutation_counts.keys()),
             mutation_counts=list(mutation_counts.values()),
         )
         generated_files.append(mutation_path)
-    
-    if evolution_data["ssl_losses"]: 
+    if evolution_data["ssl_losses"]:
         loss_path = loss_plotter.plot_loss_with_mutations(
             epochs=evolution_data["epochs"],
             total_loss=evolution_data["ssl_losses"],
             mutation_epochs=evolution_data["mutation_epochs"],
         )
         generated_files.append(loss_path)
-    
     return generated_files
 
 

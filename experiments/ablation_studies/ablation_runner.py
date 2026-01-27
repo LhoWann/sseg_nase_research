@@ -11,7 +11,6 @@ import torch
 from configs.base_config import BaseConfig
 from configs.base_config import PathConfig
 from configs.hardware_config import HardwareConfig
-from configs.hardware_config import RTX3060Config
 from configs.evaluation_config import EvaluationConfig
 from data.datamodules.curriculum_datamodule import CurriculumDataModule
 from evaluation.evaluators.efficiency_evaluator import EfficiencyEvaluator
@@ -100,7 +99,7 @@ class AblationRunner:
     ):
         self._output_dir = output_dir
         self._data_root = data_root
-        self._hardware_config = hardware_config or RTX3060Config()
+        self._hardware_config = hardware_config
         self._seed = seed
         
         self._output_dir.mkdir(parents=True, exist_ok=True)

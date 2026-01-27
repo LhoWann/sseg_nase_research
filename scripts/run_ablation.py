@@ -33,8 +33,8 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--hardware",
         type=str,
-        default="rtx3060",
-        choices=["rtx3050", "rtx3060"],
+        default="default_gpu",
+        choices=["default_gpu"],
         help="Hardware profile for optimization",
     )
     parser.add_argument(

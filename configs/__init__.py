@@ -1,6 +1,5 @@
 from configs.base_config import BaseConfig
 from configs.hardware_config import HardwareConfig
-from configs.hardware_config import RTX3060Config
 from configs.curriculum_config import CurriculumConfig
 from configs.curriculum_config import CurriculumLevel
 from configs.curriculum_config import LevelSpec
@@ -17,7 +16,6 @@ from configs.evaluation_config import FewShotConfig
 __all__ = [
     "BaseConfig",
     "HardwareConfig",
-    "RTX3060Config",
     "CurriculumConfig",
     "CurriculumLevel",
     "LevelSpec",

@@ -7,7 +7,6 @@ from configs.curriculum_config import CurriculumConfig
 from configs.evaluation_config import EvaluationConfig
 from configs.evolution_config import EvolutionConfig
 from configs.hardware_config import HardwareConfig
-from configs.hardware_config import RTX3060Config
 from configs.ssl_config import SSLConfig
 
 
@@ -18,15 +17,13 @@ class PathConfig:
     outputs: Path
     checkpoints: Path
     logs: Path
-    results: Path
-    
+    # results: Path  # Removed, no longer needed
     def create_directories(self) -> None:
         for path in [
             self.data,
             self.outputs,
             self.checkpoints,
             self.logs,
-            self.results,
         ]:
             path.mkdir(parents=True, exist_ok=True)
 
@@ -48,7 +45,6 @@ class BaseConfig:
     def __post_init__(self) -> None:
         if self.seed < 0:
             raise ValueError("seed must be non-negative")
-        
         self.paths.create_directories()
     
     @classmethod
@@ -64,14 +60,12 @@ class BaseConfig:
             outputs=root_dir / "outputs" / experiment_name,
             checkpoints=root_dir / "outputs" / experiment_name / "checkpoints",
             logs=root_dir / "outputs" / experiment_name / "logs",
-            results=root_dir / "outputs" / experiment_name / "results",
         )
-        
         return cls(
             experiment_name=experiment_name,
             seed=42,
             paths=paths,
-            hardware=hardware_config or RTX3060Config(),
+            hardware=hardware_config or HardwareConfig,
             curriculum=CurriculumConfig(),
             evolution=EvolutionConfig(),
             ssl=SSLConfig(),

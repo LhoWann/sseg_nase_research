@@ -113,7 +113,7 @@ class EvolutionPlotter:
 
         fig.tight_layout()
 
-        save_path = self._output_dir / f"evolution_trajectory. {self._style.save_format}"
+        save_path = self._output_dir / f"evolution_trajectory.{self._style.save_format.strip()}"
         fig.savefig(save_path, dpi=self._style.dpi, bbox_inches="tight")
         plt.close(fig)
 
@@ -157,7 +157,7 @@ class EvolutionPlotter:
 
         fig.tight_layout()
 
-        save_path = self._output_dir / f"channel_progression.{self._style.save_format}"
+        save_path = self._output_dir / f"channel_progression.{self._style.save_format.strip()}"
         fig.savefig(save_path, dpi=self._style.dpi, bbox_inches="tight")
         plt.close(fig)
 
@@ -197,7 +197,7 @@ class EvolutionPlotter:
 
         fig.tight_layout()
 
-        save_path = self._output_dir / f"mutation_distribution. {self._style.save_format}"
+        save_path = self._output_dir / f"mutation_distribution.{self._style.save_format.strip()}"
         fig.savefig(save_path, dpi=self._style.dpi, bbox_inches="tight")
         plt.close(fig)
 

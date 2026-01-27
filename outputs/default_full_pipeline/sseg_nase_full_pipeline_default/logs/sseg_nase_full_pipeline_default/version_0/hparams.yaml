@@ -1,0 +1,4 @@
+debug_mode: false
+experiment_name: sseg_nase_full_pipeline_default
+hardware: DefaultGPUConfig
+seed: 42

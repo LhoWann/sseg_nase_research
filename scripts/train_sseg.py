@@ -65,8 +65,8 @@ def parse_arguments() -> argparse. Namespace:
     parser.add_argument(
         "--hardware",
         type=str,
-        default="rtx3060",
-        choices=["rtx3050", "rtx3060"],
+        default="default_gpu",
+        choices=["default_gpu"],
         help="Hardware profile for optimization",
     )
     parser.add_argument(
@@ -111,7 +111,6 @@ def create_config(args:  argparse.Namespace) -> BaseConfig:
         outputs=args.output_dir / experiment_name,
         checkpoints=args.output_dir / experiment_name / "checkpoints",
         logs=args.output_dir / experiment_name / "logs",
-        results=args.output_dir / experiment_name / "results",
     )
     
     hardware_config = get_hardware_config(args.hardware)
@@ -261,7 +260,6 @@ def train(config: BaseConfig, args: argparse. Namespace) -> SSEGModule:
         architecture_summary=module.backbone.get_architecture_summary(),
         mutation_history=mutation_history,
     )
-    # Also save as final_model.pt for compatibility
     import shutil
     final_model_path = config.paths.checkpoints / "final_model.pt"
     shutil.copyfile(last_ckpt_path, final_model_path)
