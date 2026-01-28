@@ -30,6 +30,8 @@ class SSEGModule(BaseSSLModule):
         self._teacher: Optional[EMATeacher] = None
         
         self._init_projection_head()
+        # Pastikan projection head di device yang sama dengan backbone
+        self._projection_head = self._projection_head.to(self._backbone._blocks[0].conv.weight.device)
         self._init_teacher()
         
         self._augmentation = SSLAugmentation(
@@ -151,6 +153,8 @@ class SSEGModule(BaseSSLModule):
         
         if result.success:
             self._init_projection_head()
+            # Pastikan projection head di device yang sama dengan backbone setelah grow/widen
+            self._projection_head = self._projection_head.to(self._backbone._blocks[0].conv.weight.device)
             self._teacher.synchronize_architecture(self._backbone)
         
         return result.success

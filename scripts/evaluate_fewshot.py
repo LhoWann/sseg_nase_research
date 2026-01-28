@@ -28,7 +28,12 @@ def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Evaluate trained model on few-shot classification"
     )
-    
+    parser.add_argument(
+        "--config",
+        type=Path,
+        default=None,
+        help="Path to experiment config YAML file (harus sama dengan training)",
+    )
     parser.add_argument(
         "--checkpoint",
         type=Path,
@@ -84,29 +89,56 @@ def parse_arguments() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def load_model(checkpoint_path: Path, device: str) -> EvolvableCNN:
+def load_model(checkpoint_path: Path, device: str, config_path: Path = None) -> EvolvableCNN:
+    """
+    Loads the model from checkpoint, using config_path if provided for architecture consistency.
+    """
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
-    
-    from configs.evolution_config import EvolutionConfig
-    from configs.evolution_config import SeedNetworkConfig
-    
-    architecture = checkpoint.get("architecture_summary", {})
-    
+    from configs.evolution_config import EvolutionConfig, SeedNetworkConfig
+
+    if config_path is not None and config_path.exists():
+        # Load config YAML for architecture parameters
+        import yaml
+        with open(config_path, "r") as f:
+            config = yaml.safe_load(f)
+        # Assume config structure contains evolution/seed_network keys
+        evolution_cfg = config.get("evolution", {})
+        seed_cfg = evolution_cfg.get("seed_network", {})
+        initial_channels = seed_cfg.get("initial_channels", 16)
+        num_blocks = seed_cfg.get("initial_blocks", 3)
+    else:
+        # Fallback to checkpoint/meta as before
+        meta = None
+        meta_path = checkpoint_path.parent / (checkpoint_path.stem + "_metadata.json")
+        if meta_path.exists():
+            import json
+            with open(meta_path, "r") as f:
+                meta = json.load(f)
+            if isinstance(meta, dict) and len(meta) > 0:
+                last = list(meta.values())[-1]
+                initial_channels = last.get("initial_channels", last.get("feature_dim", 16))
+                num_blocks = last.get("num_blocks", 3)
+            else:
+                initial_channels = 16
+                num_blocks = 3
+        else:
+            architecture = checkpoint.get("architecture_summary", {})
+            initial_channels = architecture.get("initial_channels", architecture.get("feature_dim", 16))
+            num_blocks = architecture.get("num_blocks", 3)
+
     seed_config = SeedNetworkConfig(
-        initial_channels=16,
-        initial_blocks=architecture.get("num_blocks", 3),
+        initial_channels=initial_channels,
+        initial_blocks=num_blocks,
     )
     evolution_config = EvolutionConfig(seed_network=seed_config)
-    
+
     model = EvolvableCNN(
         seed_config=seed_config,
         evolution_config=evolution_config,
     )
-    
     model.load_state_dict(checkpoint["model_state_dict"])
     model = model.to(device)
-    model.eval()
-    
+    return model
     return model
 
 
@@ -153,7 +185,25 @@ def evaluate(args: argparse. Namespace) -> dict:
 
     seed_everything(args.seed, deterministic=True)
 
-    model = load_model(checkpoint_path, args.device)
+    config_path = getattr(args, "config", None)
+    # Auto-detect config YAML if not provided
+    if config_path is None or not (config_path and config_path.exists()):
+        # Try to find YAML in output_dir or its parent
+        import glob
+        search_dirs = [args.output_dir, args.output_dir.parent]
+        found_yaml = None
+        for d in search_dirs:
+            if d.exists():
+                yamls = list(d.glob("*.yaml"))
+                if yamls:
+                    found_yaml = yamls[0]
+                    break
+        if found_yaml:
+            config_path = found_yaml
+            logger.warning(f"Config YAML not provided, auto-detected: {config_path}")
+        else:
+            logger.warning("Config YAML not provided and could not be auto-detected. Model architecture may not match checkpoint!")
+    model = load_model(checkpoint_path, args.device, config_path)
     
     architecture = model.get_architecture_summary()
     logger.log_architecture(

@@ -31,15 +31,12 @@ class EvolvableCNN(nn.Module):
     def grow(self, out_channels: Optional[int] = None) -> bool:
         if len(self._blocks) >= self._evolution_config.growth.max_blocks:
             return False
-        
         in_channels = self._channel_sizes[-1]
-        
         if out_channels is None:
             out_channels = min(
                 int(in_channels * self._evolution_config.growth.channel_expansion_ratio),
                 self._evolution_config.growth.max_channels,
             )
-        
         new_block = ConvBlock(
             in_channels=in_channels,
             out_channels=out_channels,
@@ -48,12 +45,14 @@ class EvolvableCNN(nn.Module):
             use_batch_norm=self._seed_config.use_batch_norm,
             use_pooling=self._seed_config.use_pooling,
         )
-        
+        # Cast new_block to same device and dtype as backbone before any param op
+        ref_block = self._blocks[0] if len(self._blocks) > 0 else new_block
+        device = next(ref_block.parameters()).device
+        dtype = next(ref_block.parameters()).dtype
+        new_block = new_block.to(device=device, dtype=dtype)
         self._initialize_identity(new_block, in_channels, out_channels)
-        
         self._blocks.append(new_block)
         self._channel_sizes.append(out_channels)
-        
         return True
     
     def _initialize_identity(
@@ -71,20 +70,18 @@ class EvolvableCNN(nn.Module):
     def widen(self, block_idx: int) -> bool:
         if block_idx >= len(self._blocks):
             return False
-        
         old_channels = self._channel_sizes[block_idx]
         new_channels = min(
             int(old_channels * self._evolution_config.growth.channel_expansion_ratio),
             self._evolution_config.growth.max_channels,
         )
-        
         if new_channels == old_channels: 
             return False
-        
         in_channels = 3 if block_idx == 0 else self._channel_sizes[block_idx - 1]
-        
         old_block = self._blocks[block_idx]
-        
+        # Cast new_block to same device and dtype as old_block before param copy
+        device = next(old_block.parameters()).device
+        dtype = next(old_block.parameters()).dtype
         new_block = ConvBlock(
             in_channels=in_channels,
             out_channels=new_channels,
@@ -92,23 +89,18 @@ class EvolvableCNN(nn.Module):
             activation=self._seed_config.activation,
             use_batch_norm=self._seed_config.use_batch_norm,
             use_pooling=self._seed_config.use_pooling,
-        )
-        
+        ).to(device=device, dtype=dtype)
         with torch.no_grad():
-            new_block.conv.weight[:old_channels] = old_block.conv.weight
-            
+            new_block.conv.weight[:old_channels] = old_block.conv.weight.to(dtype=dtype)
             if self._seed_config.use_batch_norm:
-                new_block.bn.weight[:old_channels] = old_block.bn.weight
-                new_block.bn.bias[: old_channels] = old_block.bn.bias
-                new_block.bn.running_mean[:old_channels] = old_block.bn.running_mean
-                new_block.bn.running_var[:old_channels] = old_block.bn.running_var
-        
+                new_block.bn.weight[:old_channels] = old_block.bn.weight.to(dtype=dtype)
+                new_block.bn.bias[: old_channels] = old_block.bn.bias.to(dtype=dtype)
+                new_block.bn.running_mean[:old_channels] = old_block.bn.running_mean.to(dtype=dtype)
+                new_block.bn.running_var[:old_channels] = old_block.bn.running_var.to(dtype=dtype)
         self._blocks[block_idx] = new_block
         self._channel_sizes[block_idx] = new_channels
-        
         if block_idx < len(self._blocks) - 1:
             self._update_next_block_input(block_idx, old_channels, new_channels)
-        
         return True
     
     def _update_next_block_input(
@@ -116,9 +108,9 @@ class EvolvableCNN(nn.Module):
     ) -> None:
         next_block = self._blocks[block_idx + 1]
         out_channels = self._channel_sizes[block_idx + 1]
-        
         old_conv = next_block.conv
-        
+        device = old_conv.weight.device
+        dtype = old_conv.weight.dtype
         new_conv = nn.Conv2d(
             new_in_channels,
             out_channels,
@@ -126,14 +118,11 @@ class EvolvableCNN(nn.Module):
             stride=old_conv.stride,
             padding=old_conv.padding,
             bias=old_conv.bias is not None,
-        )
-        
+        ).to(device=device, dtype=dtype)
         with torch.no_grad():
-            new_conv.weight[:, :old_in_channels] = old_conv.weight
-            
+            new_conv.weight[:, :old_in_channels] = old_conv.weight.to(dtype=dtype)
             if old_conv.bias is not None:
-                new_conv.bias.copy_(old_conv.bias)
-        
+                new_conv.bias.copy_(old_conv.bias.to(dtype=dtype))
         next_block.conv = new_conv
     
     @property

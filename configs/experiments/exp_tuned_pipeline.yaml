@@ -1,4 +1,4 @@
-experiment_name: sseg_nase_full_pipeline_default
+experiment_name: sseg_nase_tuned_pipeline
 seed: 42
 debug_mode: false
 
@@ -20,15 +20,15 @@ evolution:
   seed_network:
     architecture: cnn
     initial_channels: 32
-    initial_blocks: 3
+    initial_blocks: 4
     kernel_size: 3
     activation: relu
   growth:
     max_blocks: 7
     max_channels: 256
     channel_expansion_ratio: 2.0
-    plateau_window_size: 10
-    plateau_threshold: 0.0002
+    plateau_window_size: 3
+    plateau_threshold: 0.1
     distillation_gap_threshold: 0.1
     sensitivity_method: taylor
   nase:
@@ -38,18 +38,18 @@ evolution:
     min_channels_per_layer: 8
     use_complementary_masks: true
   fitness:
-    alpha_complexity_penalty: 0.01
+    alpha_complexity_penalty: 0.001
     target_flops_giga: 2.0
     target_params_million: 2.0
 
 ssl:
   augmentation:
-    crop_scale_min: 0.2
+    crop_scale_min: 0.4
     crop_scale_max: 1.0
     horizontal_flip_prob: 0.5
-    color_jitter_strength: 0.4
-    grayscale_prob: 0.2
-    gaussian_blur_prob: 0.5
+    color_jitter_strength: 0.3
+    grayscale_prob: 0.1
+    gaussian_blur_prob: 0.2
   contrastive:
     temperature: 0.5
     loss_type: ntxent
@@ -67,12 +67,12 @@ ssl:
 
 training:
   max_epochs_per_level: 200
-  learning_rate: 0.001
+  learning_rate: 0.002
   weight_decay: 0.0001
   optimizer: adamw
   scheduler: cosine
-  warmup_epochs: 5
-  min_lr: 0.000001
+  warmup_epochs: 10
+  min_lr: 0.00001
 
 evaluation:
   few_shot:

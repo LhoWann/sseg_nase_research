@@ -14,8 +14,7 @@ datasets/minimagenet/
 datasets/cifar_fs/
 datasets/synthetic_curriculum/
 
-outputs/checkpoints/
-outputs/logs/
+outputs
 *. ckpt
 *.pth
 
@@ -29,5 +28,3 @@ outputs/logs/
 
 wandb/
 mlruns/
-
-configs_experiments_exp_rtx3050_run.json

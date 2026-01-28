@@ -1,14 +1,9 @@
-#!/usr/bin/env python3
 """
 CLI runner untuk seluruh pipeline SSEG-NASE.
 
 Usage:
     # PowerShell / CMD
     python .\scripts\cli_run.py .\configs\experiments\exp_full_pipeline.json
-
-Konsep:
-- config JSON menentukan tahap yang dijalankan dan argumen spesifik.
-- setiap tahap dipanggil sebagai subprocess terhadap script yang ada di folder scripts/.
 """
 from __future__ import annotations
 
@@ -24,8 +19,7 @@ from typing import Any, Dict, List, Optional
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
-# Constants
-DEFAULT_TIMEOUT: int = 60 * 60 * 24  # 24 hours for long runs (can be overridden)
+DEFAULT_TIMEOUT: int = 60 * 60 * 24  
 
 logger = logging.getLogger("cli_run")
 logger.setLevel(logging.INFO)
@@ -59,8 +53,8 @@ def run_subprocess(cmd: StageCommand) -> int:
             cmd.command,
             cwd=str(cmd.cwd) if cmd.cwd else None,
             check=False,
-            stdout=None,  # Inherit parent, show live output
-            stderr=None,  # Inherit parent, show live output
+            stdout=None,  
+            stderr=None,  
             text=True,
             timeout=cmd.timeout or DEFAULT_TIMEOUT,
         )
@@ -70,7 +64,7 @@ def run_subprocess(cmd: StageCommand) -> int:
         return result.returncode
     except subprocess.TimeoutExpired as e:
         logger.error("Stage '%s' timed out after %s seconds", cmd.name, e.timeout)
-        return 124  # conventional timeout exit code
+        return 124  
 
 
 def ensure_executable_python() -> str:
@@ -141,8 +135,8 @@ def build_stage_commands(config: Dict[str, Any], base_dir: Path) -> List[StageCo
             checkpoint,
             "--data-dir",
             str(eval_cfg.get("data_dir", data_dir / "minimagenet")),
-                "--output-dir",
-                str(out_dir / "results"),
+            "--output-dir",
+            str(out_dir / "results"),
             "--num-ways",
             str(eval_cfg.get("num_ways", 5)),
             "--num-shots",
@@ -161,6 +155,9 @@ def build_stage_commands(config: Dict[str, Any], base_dir: Path) -> List[StageCo
             "--device",
             eval_cfg.get("device", "cuda"),
         ]
+        # Always pass config YAML if available in train_cfg
+        if train_cfg.get("config"):
+            args += ["--config", str(train_cfg["config"])]
         cmd = [py, str(scripts_dir / "evaluate_fewshot.py")] + args
         stages.append(StageCommand(name="evaluate", command=cmd, cwd=base_dir))
 

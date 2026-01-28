@@ -41,7 +41,12 @@ class ConvBlock(nn.Module):
         x = self.conv(x)
         x = self.bn(x)
         x = self.activation(x)
-        x = self.pool(x)
+        # Pooling hanya jika spatial > 2x2
+        if isinstance(self.pool, nn.MaxPool2d):
+            if x.shape[-2] > 2 and x.shape[-1] > 2:
+                x = self.pool(x)
+        else:
+            x = self.pool(x)
         return x
 
 

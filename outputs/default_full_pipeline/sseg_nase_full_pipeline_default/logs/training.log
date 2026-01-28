@@ -1,4 +1,0 @@
-[2026-01-28 00:15:42] [INFO] [train_sseg] Starting experiment: sseg_nase_full_pipeline_default
-[2026-01-28 00:15:42] [INFO] [train_sseg] Hardware profile: default_gpu
-[2026-01-28 00:15:42] [INFO] [train_sseg] Seed: 42
-[2026-01-28 00:15:42] [INFO] [train_sseg] Architecture: blocks=3, params= 23,696, feature_dim=64

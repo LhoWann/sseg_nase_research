@@ -1,12 +1,12 @@
 {
-  "output_dir": "outputs/default_full_pipeline",
+  "output_dir": "outputs/tuned_pipeline",
   "data_dir": "datasets",
   "continue_on_error": false,
   "stages": {
     "generate_curriculum": true,
     "train": true,
     "evaluate": true,
-    "ablation": false,
+    "ablation": true,
     "analyze": true,
     "export": true
   },
@@ -17,12 +17,14 @@
     "levels": [1, 2, 3, 4]
   },
   "train": {
-    "experiment_name": "sseg_nase_full_pipeline_default",
+    "experiment_name": "sseg_nase_tuned_pipeline",
     "hardware": "default_gpu",
     "max_epochs": 100,
     "seed": 42,
     "debug": false,
-    "config": "configs/experiments/exp_full_pipeline_default.yaml"
+    "config": "configs/experiments/exp_tuned_pipeline.yaml",
+    "plateau_window_size": 3,
+    "plateau_threshold": 0.1
   },
   "evaluate": {
     "datasets": [
@@ -34,6 +36,14 @@
     "num_episodes": 600,
     "device": "cuda",
     "seed": 42
+  },
+  "ablation": {
+    "hardware": "default_gpu",
+    "max_epochs": 100,
+    "seed": 42,
+    "configs": [
+      "configs/experiments/exp_tuned_pipeline.yaml"
+    ]
   },
   "export": {
     "format": ["latex", "markdown", "json", "csv"],

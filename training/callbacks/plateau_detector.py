@@ -41,7 +41,6 @@ class PlateauDetector:
                 if self._distillation_loss_history
                 else 0.0
             )
-            
             return PlateauStatus(
                 is_plateau=False,
                 current_ssl_loss=current_ssl,
@@ -50,18 +49,13 @@ class PlateauDetector:
                 should_evolve=False,
                 should_advance_level=False,
             )
-        
         ssl_losses = list(self._ssl_loss_history)
         ssl_delta = abs(ssl_losses[-1] - ssl_losses[0])
-        
         is_plateau = ssl_delta < self._plateau_threshold
-        
         current_distillation = self._distillation_loss_history[-1]
-        has_distillation_gap = current_distillation > self._distillation_gap_threshold
-        
-        should_evolve = is_plateau and has_distillation_gap
-        should_advance_level = is_plateau and not has_distillation_gap
-        
+        # Ubah: trigger evolusi hanya berdasarkan stagnasi SSL
+        should_evolve = is_plateau
+        should_advance_level = False
         return PlateauStatus(
             is_plateau=is_plateau,
             current_ssl_loss=ssl_losses[-1],
