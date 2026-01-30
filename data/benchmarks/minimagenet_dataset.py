@@ -73,7 +73,6 @@ class MiniImageNetDataset(Dataset):
         class_dirs = sorted([d for d in split_dir.iterdir() if d.is_dir()])
 
         if class_dirs:
-            # Standard: subdirectory per class
             for class_idx, class_dir in enumerate(class_dirs):
                 class_name = class_dir.name
                 self._class_to_idx[class_name] = class_idx
@@ -82,11 +81,9 @@ class MiniImageNetDataset(Dataset):
                     if image_path.suffix in valid_extensions:
                         self._samples.append((image_path, class_idx))
         else:
-            # Flat directory: extract class from filename prefix
             class_name_set = set()
             image_files = [f for f in split_dir.iterdir() if f.is_file() and f.suffix in valid_extensions]
             for image_path in image_files:
-                # Assume class is prefix before first '_'
                 fname = image_path.name
                 class_name = fname.split('_')[0]
                 class_name_set.add(class_name)

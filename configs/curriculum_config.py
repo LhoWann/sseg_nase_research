@@ -9,6 +9,7 @@ class CurriculumLevel(IntEnum):
     TEXTURE = 2
     OBJECT = 3
     ADVERSARIAL = 4
+    REAL_MIX = 5
 
 
 @dataclass(frozen=True)
@@ -64,6 +65,13 @@ class CurriculumConfig:
                 complexity_min=0.75,
                 complexity_max=1.0,
                 description="Visually similar, semantically different",
+            ),
+            CurriculumLevel.REAL_MIX: LevelSpec(
+                name="real_mix",
+                num_samples=60000,
+                complexity_min=1.0,
+                complexity_max=1.0,
+                description="Real world images from MiniImageNet",
             ),
         }
     )

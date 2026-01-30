@@ -13,4 +13,3 @@ pillow>=10.1.0
 pandas>=2.1.0
 pytest>=8.0.0
 rich
-tensorboard

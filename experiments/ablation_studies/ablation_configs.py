@@ -114,7 +114,7 @@ def create_ablation_configs() -> dict[AblationType, AblationConfig]:
             distillation_gap_threshold=0.0,
         ),
         nase=NASEConfig(
-            sparsity_ratio=0.0,
+            sparsity_ratio=1e-6,
             pruning_interval_epochs=999999,
         ),
     )
@@ -140,7 +140,7 @@ def create_ablation_configs() -> dict[AblationType, AblationConfig]:
             distillation_gap_threshold=0.0,
         ),
         nase=NASEConfig(
-            sparsity_ratio=0.0,
+            sparsity_ratio=1e-6,
             pruning_interval_epochs=999999,
         ),
         curriculum=CurriculumConfig(
@@ -170,7 +170,7 @@ def create_ablation_configs() -> dict[AblationType, AblationConfig]:
             distillation_gap_threshold=0.1,
         ),
         nase=NASEConfig(
-            sparsity_ratio=0.0,
+            sparsity_ratio=1e-6,
             pruning_interval_epochs=999999,
         ),
     )

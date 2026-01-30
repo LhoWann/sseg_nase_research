@@ -17,29 +17,29 @@ class SSLAugmentation(nn.Module):
         self._transform = self._build_transform()
     
     def _build_transform(self) -> T.Compose:
-        return T.Compose([
+
+        aug_list = [
             T.RandomResizedCrop(
                 self._image_size,
                 scale=(self._config.crop_scale_min, self._config.crop_scale_max),
             ),
             T.RandomHorizontalFlip(p=self._config.horizontal_flip_prob),
-            T.RandomApply(
-                [
-                    T. ColorJitter(
-                        brightness=self._config.color_jitter_strength,
-                        contrast=self._config.color_jitter_strength,
-                        saturation=self._config.color_jitter_strength,
-                        hue=self._config.color_jitter_strength / 4,
-                    )
-                ],
-                p=0.8,
-            ),
+            T.RandomApply([
+                T.ColorJitter(
+                    brightness=self._config.color_jitter_strength,
+                    contrast=self._config.color_jitter_strength,
+                    saturation=self._config.color_jitter_strength,
+                    hue=self._config.color_jitter_strength / 4,
+                )
+            ], p=0.8),
             T.RandomGrayscale(p=self._config.grayscale_prob),
             T.GaussianBlur(
                 kernel_size=self._config.gaussian_blur_kernel_size,
                 sigma=(0.1, 2.0),
             ),
-        ])
+            T.RandomErasing(p=0.25, scale=(0.02, 0.33), ratio=(0.3, 3.3), value='random'),
+        ]
+        return T.Compose(aug_list)
     
     def forward(self, image: Tensor) -> Tuple[Tensor, Tensor]: 
         view_1 = self._transform(image)

@@ -41,7 +41,7 @@ class DefaultGPUConfig(HardwareConfig):
     accelerator: Literal["gpu", "cpu"] = "gpu"
     devices: int = 1
     precision: Literal["32", "16-mixed", "bf16-mixed"] = "16-mixed"
-    batch_size: int = 64
+    batch_size: int = 256
     num_workers: int = 4
     pin_memory: bool = True
     persistent_workers: bool = True

@@ -10,6 +10,7 @@ from configs.curriculum_config import CurriculumLevel
 from data.curriculum.difficulty_scorer import DifficultyScorer
 from data.curriculum.synthetic_generator import GenerationConfig
 from data.curriculum.synthetic_generator import SyntheticGenerator
+from data.benchmarks.minimagenet_dataset import MiniImageNetDataset
 
 
 class CurriculumDataset(Dataset):
@@ -41,6 +42,16 @@ class CurriculumDataset(Dataset):
         
         if cache_dir is not None:
             cache_dir.mkdir(parents=True, exist_ok=True)
+            
+        self._real_dataset = None
+        if level == CurriculumLevel.REAL_MIX:
+            self._real_dataset = MiniImageNetDataset(
+                root_dir=Path("./datasets/minimagenet"),
+                split="train",
+                image_size=config.image_size,
+                augment=True
+            )
+            self._num_samples = len(self._real_dataset)
     
     def _generate_sample(self, level: CurriculumLevel) -> Tensor:
         if level == CurriculumLevel.BASIC:
@@ -58,7 +69,11 @@ class CurriculumDataset(Dataset):
     def __getitem__(self, index: int) -> Tensor:
         if index >= self._num_samples:
             raise IndexError(f"Index {index} out of range for dataset size {self._num_samples}")
-        
+            
+        if self._level == CurriculumLevel.REAL_MIX and self._real_dataset is not None:
+             image, _ = self._real_dataset[index]
+             return image
+             
         if index in self._samples_cache:
             image = self._samples_cache[index]
         else:

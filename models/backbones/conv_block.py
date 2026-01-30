@@ -16,6 +16,7 @@ class ConvBlock(nn.Module):
         activation: Literal["relu", "gelu"] = "relu",
         use_batch_norm: bool = True,
         use_pooling: bool = True,
+        dropout: float = 0.3,
     ):
         super().__init__()
         
@@ -35,13 +36,14 @@ class ConvBlock(nn.Module):
         else:
             self.activation = nn.GELU()
         
-        self.pool = nn.MaxPool2d(2, 2) if use_pooling else nn. Identity()
+        self.pool = nn.MaxPool2d(2, 2) if use_pooling else nn.Identity()
+        self.dropout = nn.Dropout2d(p=dropout) if dropout > 0 else nn.Identity()
     
     def forward(self, x: Tensor) -> Tensor:
         x = self.conv(x)
         x = self.bn(x)
         x = self.activation(x)
-        # Pooling hanya jika spatial > 2x2
+        x = self.dropout(x)
         if isinstance(self.pool, nn.MaxPool2d):
             if x.shape[-2] > 2 and x.shape[-1] > 2:
                 x = self.pool(x)
@@ -57,6 +59,7 @@ class ResidualConvBlock(nn. Module):
         channels: int,
         kernel_size: int = 3,
         activation: Literal["relu", "gelu"] = "relu",
+        dropout: float = 0.3,
     ):
         super().__init__()
         
@@ -76,18 +79,17 @@ class ResidualConvBlock(nn. Module):
             self.activation = nn.ReLU(inplace=True)
         else:
             self.activation = nn.GELU()
+        self.dropout = nn.Dropout2d(p=dropout) if dropout > 0 else nn.Identity()
     
     def forward(self, x: Tensor) -> Tensor:
         identity = x
-        
         out = self.conv1(x)
         out = self.bn1(out)
         out = self.activation(out)
-        
+        out = self.dropout(out)
         out = self.conv2(out)
         out = self.bn2(out)
-        
         out = out + identity
         out = self.activation(out)
-        
+        out = self.dropout(out)
         return out

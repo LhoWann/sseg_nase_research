@@ -16,16 +16,33 @@ class EvolvableCNN(nn.Module):
         self,
         seed_config: SeedNetworkConfig,
         evolution_config: EvolutionConfig,
+        channel_progression: Optional[list[int]] = None,
     ):
         super().__init__()
-        
         self._seed_config = seed_config
         self._evolution_config = evolution_config
-        
-        seed = SeedNetwork(seed_config)
-        self._blocks = seed._blocks
-        self._channel_sizes = seed._channel_sizes
-        
+        if channel_progression is not None:
+            blocks = []
+            self._channel_sizes = []
+            in_channels = 3  # HARUS 3 untuk input RGB
+            for out_channels in channel_progression:
+                block = ConvBlock(
+                    in_channels=in_channels,
+                    out_channels=out_channels,
+                    kernel_size=self._seed_config.kernel_size,
+                    activation=self._seed_config.activation,
+                    use_batch_norm=self._seed_config.use_batch_norm,
+                    use_pooling=self._seed_config.use_pooling,
+                    dropout=getattr(self._seed_config, "dropout", 0.3),
+                )
+                blocks.append(block)
+                self._channel_sizes.append(out_channels)
+                in_channels = out_channels
+            self._blocks = nn.ModuleList(blocks)
+        else:
+            seed = SeedNetwork(seed_config)
+            self._blocks = seed._blocks
+            self._channel_sizes = seed._channel_sizes
         self.global_pool = nn.AdaptiveAvgPool2d(1)
     
     def grow(self, out_channels: Optional[int] = None) -> bool:
@@ -44,8 +61,9 @@ class EvolvableCNN(nn.Module):
             activation=self._seed_config.activation,
             use_batch_norm=self._seed_config.use_batch_norm,
             use_pooling=self._seed_config.use_pooling,
+            dropout=getattr(self._seed_config, "dropout", 0.3),
         )
-        # Cast new_block to same device and dtype as backbone before any param op
+
         ref_block = self._blocks[0] if len(self._blocks) > 0 else new_block
         device = next(ref_block.parameters()).device
         dtype = next(ref_block.parameters()).dtype
@@ -79,7 +97,7 @@ class EvolvableCNN(nn.Module):
             return False
         in_channels = 3 if block_idx == 0 else self._channel_sizes[block_idx - 1]
         old_block = self._blocks[block_idx]
-        # Cast new_block to same device and dtype as old_block before param copy
+
         device = next(old_block.parameters()).device
         dtype = next(old_block.parameters()).dtype
         new_block = ConvBlock(
@@ -89,6 +107,7 @@ class EvolvableCNN(nn.Module):
             activation=self._seed_config.activation,
             use_batch_norm=self._seed_config.use_batch_norm,
             use_pooling=self._seed_config.use_pooling,
+            dropout=getattr(self._seed_config, "dropout", 0.3),
         ).to(device=device, dtype=dtype)
         with torch.no_grad():
             new_block.conv.weight[:old_channels] = old_block.conv.weight.to(dtype=dtype)

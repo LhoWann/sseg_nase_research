@@ -70,8 +70,6 @@ def load_evolution_data(checkpoint_dir: Path) -> dict:
     import torch
     
     for ckpt_path in checkpoints: 
-        # PyTorch 2.6+ sets weights_only=True by default, which can cause UnpicklingError for custom classes.
-        # Setting weights_only=False restores previous behavior. Only do this if you trust the checkpoint source.
         checkpoint = torch.load(ckpt_path, map_location="cpu", weights_only=False)
         
         metadata = checkpoint.get("metadata", {})

@@ -112,7 +112,6 @@ class AblationRunner:
             outputs=self._output_dir / ablation_config.name,
             checkpoints=self._output_dir / ablation_config.name / "checkpoints",
             logs=self._output_dir / ablation_config.name / "logs",
-            results=self._output_dir / ablation_config.name / "results",
         )
         
         from configs.evolution_config import EvolutionConfig

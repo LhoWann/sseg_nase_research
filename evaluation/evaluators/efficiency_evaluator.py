@@ -26,7 +26,6 @@ class EfficiencyMetrics:
             "memory_mb": self.memory_mb,
         }
 
-
 class EfficiencyEvaluator:
     
     def __init__(
@@ -35,8 +34,8 @@ class EfficiencyEvaluator:
         device: str = "cuda",
         input_size: tuple[int, int, int, int] = (1, 3, 84, 84),
     ):
-        self._model = model.to(device)
         self._device = device
+        self._model = model.to(self._device)
         self._input_size = input_size
         self._model.eval()
     
@@ -46,35 +45,35 @@ class EfficiencyEvaluator:
         return num_params, params_millions
     
     def estimate_flops(self) -> tuple[int, float]:
+        self._model = self._model.to(self._device)
         flops = 0
-        
+
         def hook_fn(module, input, output):
             nonlocal flops
-            
             if isinstance(module, nn.Conv2d):
                 batch_size = input[0].size(0)
                 output_h, output_w = output.size(2), output.size(3)
                 kernel_ops = module.kernel_size[0] * module.kernel_size[1]
                 input_channels = module.in_channels // module.groups
                 flops += batch_size * output_h * output_w * input_channels * kernel_ops * module.out_channels
-            
             elif isinstance(module, nn.Linear):
                 batch_size = input[0].size(0)
                 flops += batch_size * module.in_features * module.out_features
-        
+
         hooks = []
         for module in self._model.modules():
             if isinstance(module, (nn.Conv2d, nn.Linear)):
                 hooks.append(module.register_forward_hook(hook_fn))
-        
-        dummy_input = torch.randn(*self._input_size, device=self._device)
-        
+
+        dummy_input = torch.randn(*self._input_size)
+        dummy_input = dummy_input.to(next(self._model.parameters()).device)
+
         with torch.no_grad():
             self._model(dummy_input)
-        
+
         for hook in hooks:
             hook.remove()
-        
+
         return flops, flops / 1e9
     
     def measure_inference_time(

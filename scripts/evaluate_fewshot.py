@@ -32,7 +32,7 @@ def parse_arguments() -> argparse.Namespace:
         "--config",
         type=Path,
         default=None,
-        help="Path to experiment config YAML file (harus sama dengan training)",
+        help="Path to experiment config YAML file (must match training)",
     )
     parser.add_argument(
         "--checkpoint",
@@ -90,59 +90,36 @@ def parse_arguments() -> argparse.Namespace:
 
 
 def load_model(checkpoint_path: Path, device: str, config_path: Path = None) -> EvolvableCNN:
-    """
-    Loads the model from checkpoint, using config_path if provided for architecture consistency.
-    """
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
+    print("DEBUG: Starting load_model")
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
+    print("DEBUG: checkpoint['architecture_summary'] =", checkpoint.get("architecture_summary", None))
     from configs.evolution_config import EvolutionConfig, SeedNetworkConfig
+    import yaml
 
-    if config_path is not None and config_path.exists():
-        # Load config YAML for architecture parameters
-        import yaml
+    arch = checkpoint.get("architecture_summary", {})
+    channel_progression = arch.get("channel_progression")
+    num_blocks = arch.get("num_blocks")
+    initial_channels = None
+    if channel_progression and isinstance(channel_progression, list) and len(channel_progression) > 0:
+        initial_channels = channel_progression[0]
+        num_blocks = len(channel_progression)
+
+    if (initial_channels is None or num_blocks is None) and config_path is not None and config_path.exists():
         with open(config_path, "r") as f:
             config = yaml.safe_load(f)
-        # Assume config structure contains evolution/seed_network keys
         evolution_cfg = config.get("evolution", {})
         seed_cfg = evolution_cfg.get("seed_network", {})
-        initial_channels = seed_cfg.get("initial_channels", 16)
-        num_blocks = seed_cfg.get("initial_blocks", 3)
-    else:
-        # Fallback to checkpoint/meta as before
-        meta = None
-        meta_path = checkpoint_path.parent / (checkpoint_path.stem + "_metadata.json")
-        if meta_path.exists():
-            import json
-            with open(meta_path, "r") as f:
-                meta = json.load(f)
-            if isinstance(meta, dict) and len(meta) > 0:
-                last = list(meta.values())[-1]
-                initial_channels = last.get("initial_channels", last.get("feature_dim", 16))
-                num_blocks = last.get("num_blocks", 3)
-            else:
-                initial_channels = 16
-                num_blocks = 3
-        else:
-            architecture = checkpoint.get("architecture_summary", {})
-            initial_channels = architecture.get("initial_channels", architecture.get("feature_dim", 16))
-            num_blocks = architecture.get("num_blocks", 3)
+        if initial_channels is None:
+            initial_channels = seed_cfg.get("initial_channels", 16)
+        if num_blocks is None:
+            num_blocks = seed_cfg.get("initial_blocks", 3)
 
-    seed_config = SeedNetworkConfig(
-        initial_channels=initial_channels,
-        initial_blocks=num_blocks,
-    )
-    evolution_config = EvolutionConfig(seed_network=seed_config)
+    if initial_channels is None:
+        initial_channels = 16
+    if num_blocks is None:
+        num_blocks = 3
 
-    model = EvolvableCNN(
-        seed_config=seed_config,
-        evolution_config=evolution_config,
-    )
-    model.load_state_dict(checkpoint["model_state_dict"])
-    model = model.to(device)
-    return model
-
-    # 4. Debug print sebelum membangun model
-    print("DEBUG: channel_progression =", channel_progression)
-    print("DEBUG: num_blocks =", num_blocks)
     seed_config = SeedNetworkConfig(
         initial_channels=initial_channels,
         initial_blocks=num_blocks,
@@ -168,16 +145,15 @@ def load_model(checkpoint_path: Path, device: str, config_path: Path = None) -> 
             move_to_device(child, device)
     move_to_device(model, device)
 
-    # Tambahkan pengecekan jumlah parameter
+    # Add parameter count check
     num_params = sum(p.numel() for p in model.parameters())
     if num_params == 0:
         raise RuntimeError(
             f"Model has 0 parameters after loading checkpoint. "
-            f"Kemungkinan besar arsitektur model tidak cocok dengan checkpoint. "
-            f"Periksa channel_progression, num_blocks, dan config YAML yang digunakan."
+            f"Most likely the model architecture does not match the checkpoint. "
+            f"Check channel_progression, num_blocks, and the YAML config used."
         )
     return model
-
 
 def evaluate(args: argparse. Namespace) -> dict:
     logger = get_logger(
@@ -262,6 +238,8 @@ def evaluate(args: argparse. Namespace) -> dict:
         device=args.device,
     )
     
+    # Ensure model is on the correct device before passing to EfficiencyEvaluator
+    model = model.to(args.device)
     efficiency_evaluator = EfficiencyEvaluator(model=model, device=args.device)
     efficiency_metrics = efficiency_evaluator.evaluate()
     
@@ -333,40 +311,32 @@ def evaluate(args: argparse. Namespace) -> dict:
 def generate_summary_report(results:  dict, output_dir: Path) -> None:
     formatter = ResultFormatter()
     
-    lines = [
-        "# Few-Shot Evaluation Results",
-        "",
-        "## Model Architecture",
-        "",
-        f"- Number of Blocks: {results['architecture']['num_blocks']}",
-        f"- Feature Dimension: {results['architecture']['feature_dim']}",
-        f"- Total Parameters: {results['architecture']['total_params']: ,}",
-        "",
-        "## Efficiency Metrics",
-        "",
-        f"- Parameters:  {results['efficiency']['params_millions']:.2f}M",
-        f"- FLOPs: {results['efficiency']['flops_giga']:.2f}G",
-        f"- Inference Time: {results['efficiency']['inference_time_ms']:.2f}ms",
-        "",
-        "## Few-Shot Performance",
-        "",
-        "| N-way | K-shot | Accuracy | 95% CI |",
-        "|-------|--------|----------|--------|",
-    ]
-    
+    lines = []
+    lines.append("Few-Shot Evaluation Results")
+    lines.append("")
+    lines.append("Model Architecture")
+    lines.append("")
+    lines.append(f"Number of Blocks: {results['architecture']['num_blocks']}")
+    lines.append(f"Feature Dimension: {results['architecture']['feature_dim']}")
+    lines.append(f"Total Parameters: {results['architecture']['total_params']: ,}")
+    lines.append("")
+    lines.append("Efficiency Metrics")
+    lines.append("")
+    lines.append(f"Parameters:  {results['efficiency']['params_millions']:.2f}M")
+    lines.append(f"FLOPs: {results['efficiency']['flops_giga']:.2f}G")
+    lines.append(f"Inference Time: {results['efficiency']['inference_time_ms']:.2f}ms")
+    lines.append("")
+    lines.append("Few-Shot Performance")
+    lines.append("")
+    lines.append("N-way, K-shot, Accuracy, 95% CI")
     for fs_result in results["few_shot_results"]:
         accuracy_str = formatter.format_accuracy(
             fs_result["mean_accuracy"],
             fs_result["margin"],
         )
         ci_str = f"[{fs_result['ci_lower']:.2f}, {fs_result['ci_upper']:.2f}]"
-        
-        lines.append(
-            f"| {fs_result['num_ways']} | {fs_result['num_shots']} | "
-            f"{accuracy_str} | {ci_str} |"
-        )
-    
-    report_path = output_dir / "evaluation_summary.md"
+        lines.append(f"{fs_result['num_ways']}, {fs_result['num_shots']}, {accuracy_str}, {ci_str}")
+    report_path = output_dir / "evaluation_summary.txt"
     with open(report_path, "w") as f:
         f.write("\n".join(lines))
 

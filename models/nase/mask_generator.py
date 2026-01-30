@@ -28,12 +28,14 @@ class MaskGenerator:
             )
             
             if positive_mask.sum() < min_active:
-                top_k_indices = torch.topk(importance.flatten(), min_active).indices
-                
+                flat_importance = importance.flatten()
+                if flat_importance.numel() < min_active:
+                    top_k_indices = torch.arange(flat_importance.numel(), device=flat_importance.device)
+                else:
+                    top_k_indices = torch.topk(flat_importance, min_active).indices
                 positive_mask_flat = positive_mask.flatten()
                 positive_mask_flat[top_k_indices] = 1.0
                 positive_mask = positive_mask_flat.view(importance.shape)
-                
                 negative_mask = 1.0 - positive_mask
             
             positive_masks[name] = positive_mask

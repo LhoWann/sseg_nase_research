@@ -99,8 +99,8 @@ def build_stage_commands(config: Dict[str, Any], base_dir: Path) -> List[StageCo
         stages.append(StageCommand(name="generate_curriculum", command=cmd, cwd=base_dir))
 
     # 2. Train main model
+    train_cfg = config.get("train", {})
     if config.get("stages", {}).get("train", True):
-        train_cfg = config.get("train", {})
         args = [
             "--experiment-name",
             train_cfg.get("experiment_name", "sseg_nase_exp"),
@@ -176,8 +176,9 @@ def build_stage_commands(config: Dict[str, Any], base_dir: Path) -> List[StageCo
             "--seed",
             str(ab_cfg.get("seed", 42)),
         ]
-        if ab_cfg.get("configs"):
-            args += ["--configs"] + [str(c) for c in ab_cfg["configs"]]
+        # Use --ablations if specified, otherwise omit (run all by default)
+        if ab_cfg.get("ablations"):
+            args += ["--ablations"] + [str(a) for a in ab_cfg["ablations"]]
         cmd = [py, str(scripts_dir / "run_ablation.py")] + args
         stages.append(StageCommand(name="ablation", command=cmd, cwd=base_dir))
 
