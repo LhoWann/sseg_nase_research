@@ -139,6 +139,43 @@ def load_model(checkpoint_path: Path, device: str, config_path: Path = None) -> 
     model.load_state_dict(checkpoint["model_state_dict"])
     model = model.to(device)
     return model
+
+    # 4. Debug print sebelum membangun model
+    print("DEBUG: channel_progression =", channel_progression)
+    print("DEBUG: num_blocks =", num_blocks)
+    seed_config = SeedNetworkConfig(
+        initial_channels=initial_channels,
+        initial_blocks=num_blocks,
+    )
+    evolution_config = EvolutionConfig(seed_network=seed_config)
+    if channel_progression and len(channel_progression) == num_blocks:
+        model = EvolvableCNN(
+            seed_config=seed_config,
+            evolution_config=evolution_config,
+            channel_progression=channel_progression
+        )
+    else:
+        model = EvolvableCNN(
+            seed_config=seed_config,
+            evolution_config=evolution_config
+        )
+    # 6. Load state_dict
+    model.load_state_dict(checkpoint["model_state_dict"], strict=False)
+    # Ensure model and all submodules are on the correct device after loading weights
+    def move_to_device(module, device):
+        module.to(device)
+        for child in module.children():
+            move_to_device(child, device)
+    move_to_device(model, device)
+
+    # Tambahkan pengecekan jumlah parameter
+    num_params = sum(p.numel() for p in model.parameters())
+    if num_params == 0:
+        raise RuntimeError(
+            f"Model has 0 parameters after loading checkpoint. "
+            f"Kemungkinan besar arsitektur model tidak cocok dengan checkpoint. "
+            f"Periksa channel_progression, num_blocks, dan config YAML yang digunakan."
+        )
     return model
 
 
