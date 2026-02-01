@@ -29,28 +29,12 @@ class DefaultGPUConfig(HardwareConfig):
     accelerator: Literal["gpu", "cpu"] = "gpu"
     devices: int = 1
     precision: Literal["32", "16-mixed", "bf16-mixed"] = "16-mixed"
-    batch_size: int = 32
+    batch_size: int = 16
     num_workers: int = 4
     pin_memory: bool = True
     persistent_workers: bool = True
-    gradient_accumulation_steps: int = 2
+    gradient_accumulation_steps: int = 8
     gradient_clip_val: float = 1.0
-    max_memory_gb: float = 8.0
-@dataclass(frozen=True)
-class KaggleDualGPUConfig(HardwareConfig):
-    device: Literal["cuda", "cpu", "mps"] = "cuda"
-    accelerator: Literal["gpu", "cpu"] = "gpu"
-    devices: int = 2
-    precision: Literal["32", "16-mixed", "bf16-mixed"] = "16-mixed"
-    batch_size: int = 128 
-    num_workers: int = 4
-    pin_memory: bool = True
-    persistent_workers: bool = True
-    gradient_accumulation_steps: int = 1
-    gradient_clip_val: float = 1.0
-    max_memory_gb: float = 13.0
-
+    max_memory_gb: float = 4.0
 def get_hardware_config(name: str) -> HardwareConfig:
-    if name == "kaggle_dual":
-        return KaggleDualGPUConfig()
     return DefaultGPUConfig()

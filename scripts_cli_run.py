@@ -57,17 +57,14 @@ def build_stage_commands(config: Dict[str, Any], base_dir: Path) -> List[StageCo
     py = ensure_executable_python()
     scripts_dir = base_dir / "scripts"
     
-    # Use EnvironmentHelper for smart defaults
-    sys.path.insert(0, str(base_dir)) # Ensure we can import utils
-    from utils.environment import EnvironmentHelper
-    
-    # We need experiment name to get paths, but checking train config is circular.
-    # We'll use a dummy name or the one from train config if available to get generic paths
     train_exp = config.get("train", {}).get("experiment_name", "sseg_nase_exp")
-    env_paths = EnvironmentHelper.get_paths(train_exp)
     
-    out_dir = Path(config.get("output_dir", env_paths["outputs"].parent)) # Use parent of outputs/exp_name
-    data_dir = Path(config.get("data_dir", env_paths["data"]))
+    # Logic: config > default local path
+    default_out_dir = base_dir / "outputs" / train_exp
+    default_data_dir = base_dir / "datasets"
+    
+    out_dir = Path(config.get("output_dir", default_out_dir.parent)) # Parent because train_sseg appends exp_name
+    data_dir = Path(config.get("data_dir", default_data_dir))
     
     stages: List[StageCommand] = []
     if config.get("stages", {}).get("generate_curriculum", True):
@@ -209,14 +206,12 @@ def main(argv: Optional[List[str]] = None) -> int:
         logger.exception("Failed to build stage commands: %s", exc)
         return 1
     out_dir_path = Path(config.get("output_dir", "outputs"))
-    # Refined logic: if default is used, let's verify if EnvironmentHelper suggests something else
-    # We re-import here or assume it was set correctly? 
-    # To be safe and consistent with build_stage_commands:
-    sys.path.insert(0, str(base_dir))
-    from utils.environment import EnvironmentHelper
+    
     train_exp = config.get("train", {}).get("experiment_name", "sseg_nase_exp")
-    env_paths = EnvironmentHelper.get_paths(train_exp)
-    out_dir = Path(config.get("output_dir", env_paths["outputs"].parent))
+
+    default_out_parent = base_dir / "outputs"
+    
+    out_dir = Path(config.get("output_dir", default_out_parent))
     
     out_dir.mkdir(parents=True, exist_ok=True)
     continue_on_error = config.get("continue_on_error", False)

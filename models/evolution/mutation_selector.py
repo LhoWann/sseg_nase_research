@@ -40,21 +40,44 @@ class MutationSelector:
             if param.grad is None:
                 continue
             if method == "gradient": 
-                sensitivity = param.grad.abs().sum().item()
+                sensitivity = torch.sqrt((param.grad ** 2).sum()).item()
             elif method == "taylor":
-                sensitivity = (param.data * param.grad).abs().sum().item()
+                sensitivity = torch.sqrt(((param.data * param.grad) ** 2).sum()).item()
             else:
-                sensitivity = param.grad.pow(2).sum().item()
+                sensitivity = torch.sqrt((param.grad ** 2).sum()).item()
             total_sensitivity += sensitivity
             param_count += 1
         return total_sensitivity / max(param_count, 1)
+
+    def _compute_fitness(self, mutation_type: MutationType, target_idx: Optional[int]) -> float:
+        current_flops = self._model.estimate_flops()
+        target_flops = self._config.fitness.target_flops_giga
+        alpha = self._config.fitness.alpha_complexity_penalty
+        flops_penalty = alpha * (current_flops / target_flops)
+        base_score = 1.0
+        if mutation_type == MutationType.GROW:
+            base_score = 0.8
+        elif mutation_type == MutationType.WIDEN:
+            base_score = 0.6
+        return base_score - flops_penalty
+
     def select_mutation(
         self, sensitivities: list[LayerSensitivity]
     ) -> tuple[MutationType, Optional[int]]:
+        candidates = []
         can_grow = self._model.num_blocks < self._config.growth.max_blocks
         if can_grow:
-            return MutationType.GROW, None
+            fitness = self._compute_fitness(MutationType.GROW, None)
+            if fitness > 0:
+                candidates.append((MutationType.GROW, None, fitness))
         for sensitivity in sensitivities:
             if sensitivity.can_widen:
-                return MutationType.WIDEN, sensitivity.layer_idx
-        return MutationType. NONE, None
+                fitness = self._compute_fitness(MutationType.WIDEN, sensitivity.layer_idx)
+                weighted_fitness = fitness * (1.0 + sensitivity.sensitivity_score * 0.1)
+                if weighted_fitness > 0:
+                    candidates.append((MutationType.WIDEN, sensitivity.layer_idx, weighted_fitness))
+        if not candidates:
+            return MutationType.NONE, None
+        candidates.sort(key=lambda x: x[2], reverse=True)
+        best = candidates[0]
+        return best[0], best[1]

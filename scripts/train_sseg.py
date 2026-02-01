@@ -60,7 +60,7 @@ def parse_arguments() -> argparse. Namespace:
         "--hardware",
         type=str,
         default="default_gpu",
-        choices=["default_gpu", "kaggle_dual"],
+        choices=["default_gpu", "cpu"],
         help="Hardware profile for optimization",
     )
     parser.add_argument(
@@ -145,6 +145,7 @@ def create_config(args:  argparse.Namespace) -> BaseConfig:
         importance_metric=get_nested(config_dict, "evolution.nase.importance_metric", "taylor"),
         min_channels_per_layer=get_nested(config_dict, "evolution.nase.min_channels_per_layer", 8),
         use_complementary_masks=get_nested(config_dict, "evolution.nase.use_complementary_masks", True),
+        negative_scale=get_nested(config_dict, "evolution.nase.negative_scale", 0.1),
     )
     fitness = FitnessConfig(
         alpha_complexity_penalty=get_nested(config_dict, "evolution.fitness.alpha_complexity_penalty", 0.1),
@@ -157,7 +158,7 @@ def create_config(args:  argparse.Namespace) -> BaseConfig:
         nase=nase,
         fitness=fitness,
     )
-    from configs.ssl_config import AugmentationConfig, ContrastiveLossConfig, DistillationConfig, ProjectionConfig, SSLConfig
+    from configs.ssl_config import AugmentationConfig, ContrastiveLossConfig, DistillationConfig, ProjectionConfig, SSLConfig, RotationLossConfig
     augmentation = AugmentationConfig(
         crop_scale_min=get_nested(config_dict, "ssl.augmentation.crop_scale_min", 0.2),
         crop_scale_max=get_nested(config_dict, "ssl.augmentation.crop_scale_max", 1.0),
@@ -184,11 +185,16 @@ def create_config(args:  argparse.Namespace) -> BaseConfig:
         num_layers=get_nested(config_dict, "ssl.projection.num_layers", 2),
         use_batch_norm=get_nested(config_dict, "ssl.projection.use_batch_norm", True),
     )
+    rotation = RotationLossConfig(
+        enabled=get_nested(config_dict, "ssl.rotation.enabled", False),
+        weight=get_nested(config_dict, "ssl.rotation.weight", 0.5),
+    )
     ssl = SSLConfig(
         augmentation=augmentation,
         contrastive=contrastive,
         distillation=distillation,
         projection=projection,
+        rotation=rotation,
     )
     evaluation = EvaluationConfig()
     return BaseConfig(

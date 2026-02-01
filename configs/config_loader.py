@@ -17,6 +17,7 @@ from configs.ssl_config import AugmentationConfig
 from configs.ssl_config import ContrastiveLossConfig
 from configs.ssl_config import DistillationConfig
 from configs.ssl_config import ProjectionConfig
+from configs.ssl_config import RotationLossConfig
 from configs.ssl_config import SSLConfig
 def load_yaml(path: Path) -> dict[str, Any]:
     with open(path, "r") as file:
@@ -59,6 +60,7 @@ def build_config_from_yaml(yaml_path: Path) -> BaseConfig:
         pruning_interval_epochs=nase_cfg["pruning_interval_epochs"],
         importance_metric=nase_cfg["importance_metric"],
         min_channels_per_layer=nase_cfg["min_channels_per_layer"],
+        negative_scale=nase_cfg.get("negative_scale", 0.1),
     )
     fitness_cfg = config_dict["evolution"]["fitness"]
     fitness = FitnessConfig(
@@ -96,11 +98,17 @@ def build_config_from_yaml(yaml_path: Path) -> BaseConfig:
         output_dim=proj_cfg["output_dim"],
         num_layers=proj_cfg.get("num_layers", 2),
     )
+    rot_cfg = config_dict["ssl"].get("rotation", {})
+    rotation = RotationLossConfig(
+        enabled=rot_cfg.get("enabled", False),
+        weight=rot_cfg.get("weight", 0.5),
+    )
     ssl = SSLConfig(
         augmentation=augmentation,
         contrastive=contrastive,
         distillation=distillation,
         projection=projection,
+        rotation=rotation,
     )
     fs_cfg = config_dict["evaluation"]["few_shot"]
     few_shot = FewShotConfig(

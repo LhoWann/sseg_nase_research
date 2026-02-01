@@ -27,15 +27,27 @@ class SparseRouter:
     def apply_sparse_forward(
         self, model: nn.Module, x: Tensor, use_negative_path: bool = False
     ) -> Tensor:
-        masks = self._negative_masks if use_negative_path else self._positive_masks
-        if not masks:
+        if not self._positive_masks:
             return model(x)
+        if use_negative_path:
+            masks = self._negative_masks
+            original_params = {}
+            for name, param in model.named_parameters():
+                if name in masks:
+                    original_params[name] = param.data.clone()
+                    mask_device = masks[name].to(param.device)
+                    param.data = param.data * mask_device
+            output = model(x)
+            for name, original_data in original_params.items():
+                dict(model.named_parameters())[name].data = original_data
+            return output
         original_params = {}
         for name, param in model.named_parameters():
-            if name in masks:
+            if name in self._positive_masks:
                 original_params[name] = param.data.clone()
-                mask_device = masks[name].to(param.device)
-                param.data = param.data * mask_device
+                pos_mask = self._positive_masks[name].to(param.device)
+                neg_mask = self._negative_masks[name].to(param.device)
+                param.data = param.data * pos_mask + self._config.negative_scale * param.data * neg_mask
         output = model(x)
         for name, original_data in original_params.items():
             dict(model.named_parameters())[name].data = original_data

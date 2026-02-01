@@ -43,6 +43,7 @@ class NASEConfig:
     importance_metric: Literal["magnitude", "gradient", "taylor"] = "taylor"
     min_channels_per_layer: int = 8
     use_complementary_masks: bool = True
+    negative_scale: float = 0.1
     def __post_init__(self) -> None:
         if not 0.0 < self.sparsity_ratio < 1.0:
             raise ValueError("sparsity_ratio must be in (0, 1)")
