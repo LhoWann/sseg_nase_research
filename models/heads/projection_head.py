@@ -19,8 +19,6 @@ class ProjectionHead(nn.Module):
                 layers.append(nn.Dropout(p=self._config.dropout))
             current_dim = self._config.hidden_dim
         layers.append(nn.Linear(current_dim, self._config.output_dim))
-        if hasattr(self._config, "dropout") and self._config.dropout > 0:
-            layers.append(nn.Dropout(p=self._config.dropout))
         return nn.Sequential(*layers)
     def forward(self, x: Tensor) -> Tensor:
         return self.layers(x)

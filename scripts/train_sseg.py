@@ -196,6 +196,18 @@ def create_config(args:  argparse.Namespace) -> BaseConfig:
         projection=projection,
         rotation=rotation,
     )
+    from configs.training_config import TrainingConfig
+    training = TrainingConfig(
+        batch_size=get_nested(config_dict, "training.batch_size", 16),
+        learning_rate=get_nested(config_dict, "training.learning_rate", 0.001),
+        weight_decay=get_nested(config_dict, "training.weight_decay", 0.0001),
+        optimizer=get_nested(config_dict, "training.optimizer", "adamw"),
+        scheduler=get_nested(config_dict, "training.scheduler", "cosine"),
+        warmup_epochs=get_nested(config_dict, "training.warmup_epochs", 5),
+        min_lr=get_nested(config_dict, "training.min_lr", 0.00001),
+        dropout=get_nested(config_dict, "training.dropout", 0.1),
+        early_stopping_patience=get_nested(config_dict, "training.early_stopping_patience", 10),
+    )
     evaluation = EvaluationConfig()
     return BaseConfig(
         experiment_name=experiment_name,
@@ -206,6 +218,7 @@ def create_config(args:  argparse.Namespace) -> BaseConfig:
         evolution=evolution,
         ssl=ssl,
         evaluation=evaluation,
+        training=training,
         debug_mode=args.debug,
     )
 def create_callbacks(config: BaseConfig) -> list[pl.Callback]: 

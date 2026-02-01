@@ -7,6 +7,7 @@ from configs.evaluation_config import EvaluationConfig
 from configs.evolution_config import EvolutionConfig
 from configs.hardware_config import HardwareConfig
 from configs.ssl_config import SSLConfig
+from configs.training_config import TrainingConfig
 @dataclass
 class PathConfig:
     root: Path
@@ -32,6 +33,7 @@ class BaseConfig:
     evolution: EvolutionConfig
     ssl: SSLConfig
     evaluation: EvaluationConfig
+    training: TrainingConfig = None
     resume_from_checkpoint: Optional[Path] = None
     debug_mode: bool = False
     def __post_init__(self) -> None:
@@ -68,6 +70,7 @@ class BaseConfig:
             evolution=EvolutionConfig(),
             ssl=SSLConfig(),
             evaluation=EvaluationConfig(),
+            training=TrainingConfig(),
         )
     def to_dict(self) -> dict:
         return {

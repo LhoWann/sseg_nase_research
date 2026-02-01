@@ -33,7 +33,7 @@
     ],
     "num_ways": 5,
     "num_shots": [1, 5],
-    "num_episodes": 1000,
+    "num_episodes": 600,
     "device": "cuda",
     "seed": 42
   },

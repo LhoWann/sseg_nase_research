@@ -132,17 +132,21 @@ class SSEGModule(BaseSSLModule):
         )
         if self._rotation_head is not None:
             params.extend(list(self._rotation_head.parameters()))
+        training_cfg = getattr(self._config, "training", None)
+        lr = training_cfg.learning_rate if training_cfg else 1e-3
+        wd = training_cfg.weight_decay if training_cfg else 1e-4
+        warmup = training_cfg.warmup_epochs if training_cfg else 5
         optimizer = create_optimizer(
             parameters=params,
             optimizer_name="adamw",
-            learning_rate=1e-3,
-            weight_decay=1e-4,
+            learning_rate=lr,
+            weight_decay=wd,
         )
         scheduler = create_scheduler(
             optimizer=optimizer,
             scheduler_name="cosine",
-            max_epochs=100,
-            warmup_epochs=5,
+            max_epochs=self.trainer.max_epochs if self.trainer else 100,
+            warmup_epochs=warmup,
         )
         return {
             "optimizer": optimizer,
