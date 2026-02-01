@@ -1,21 +1,14 @@
 from pathlib import Path
 from typing import Literal
-
 import torch
 from PIL import Image
 from torch import Tensor
 from torch.utils.data import Dataset
 from torchvision import transforms
-
-
 SplitType = Literal["train", "val", "test"]
-
-
 class MiniImageNetDataset(Dataset):
-    
     MEAN = (0.485, 0.456, 0.406)
     STD = (0.229, 0.224, 0.225)
-    
     def __init__(
         self,
         root_dir: Path,
@@ -27,17 +20,13 @@ class MiniImageNetDataset(Dataset):
         self._split = split
         self._image_size = image_size
         self._augment = augment
-        
         self._samples:  list[tuple[Path, int]] = []
         self._class_to_idx: dict[str, int] = {}
         self._idx_to_class: dict[int, str] = {}
-        
         self._transform = self._build_transform()
         self._load_dataset()
-    
     def _build_transform(self) -> transforms.Compose:
         transform_list = []
-        
         if self._augment:
             transform_list.extend([
                 transforms.RandomResizedCrop(
@@ -56,22 +45,17 @@ class MiniImageNetDataset(Dataset):
             transform_list.append(
                 transforms.Resize((self._image_size, self._image_size))
             )
-        
         transform_list.extend([
             transforms.ToTensor(),
             transforms.Normalize(mean=self.MEAN, std=self.STD),
         ])
-        
         return transforms. Compose(transform_list)
-    
     def _load_dataset(self) -> None:
         split_dir = self._root_dir / self._split
         if not split_dir.exists():
             raise FileNotFoundError(f"Directory not found: {split_dir}")
-
         valid_extensions = {".jpg", ".jpeg", ".png", ".JPEG", ".JPG", ".PNG"}
         class_dirs = sorted([d for d in split_dir.iterdir() if d.is_dir()])
-
         if class_dirs:
             for class_idx, class_dir in enumerate(class_dirs):
                 class_name = class_dir.name
@@ -95,24 +79,19 @@ class MiniImageNetDataset(Dataset):
                 class_name = fname.split('_')[0]
                 class_idx = self._class_to_idx[class_name]
                 self._samples.append((image_path, class_idx))
-    
     def __len__(self) -> int:
         return len(self._samples)
-    
     def __getitem__(self, index:  int) -> tuple[Tensor, int]:
         image_path, label = self._samples[index]
         image = Image.open(image_path).convert("RGB")
         image_tensor = self._transform(image)
         return image_tensor, label
-    
     @property
     def num_classes(self) -> int:
         return len(self._class_to_idx)
-    
     @property
     def class_to_idx(self) -> dict[str, int]:
         return self._class_to_idx.copy()
-    
     def get_samples_by_class(self, class_idx: int) -> list[int]:
         return [
             idx

@@ -1,12 +1,9 @@
 from typing import Iterable
 from typing import Literal
-
 from torch import nn
 from torch.optim import Optimizer
 from torch.optim import AdamW
 from torch.optim import SGD
-
-
 def create_optimizer(
     parameters: Iterable[nn.Parameter],
     optimizer_name:  Literal["adamw", "sgd", "adam"] = "adamw",
@@ -19,7 +16,6 @@ def create_optimizer(
         return AdamW(
             parameters, lr=learning_rate, weight_decay=weight_decay, betas=betas
         )
-    
     elif optimizer_name == "sgd":
         return SGD(
             parameters,
@@ -27,11 +23,8 @@ def create_optimizer(
             weight_decay=weight_decay,
             momentum=momentum,
         )
-    
     elif optimizer_name == "adam":
         from torch.optim import Adam
-        
         return Adam(parameters, lr=learning_rate, weight_decay=weight_decay, betas=betas)
-    
     else:
         raise ValueError(f"Unknown optimizer: {optimizer_name}")

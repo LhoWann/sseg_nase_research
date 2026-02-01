@@ -57,6 +57,9 @@ ssl:
     temperature: 0.2
     loss_type: ntxent
     normalize_features: true
+  rotation:
+    enabled: true
+    weight: 1.0 # Strong supervision from rotation
   distillation:
     ema_decay: 0.996
     distillation_weight: 1.5
@@ -70,7 +73,7 @@ ssl:
     dropout: 0.1
 
 training:
-  batch_size: 256
+  batch_size: 32
   learning_rate: 0.001
   weight_decay: 0.0001
   optimizer: adamw
@@ -98,5 +101,10 @@ evaluation:
     - name: cifar_fs
       root_dir: ./datasets/cifar_fs
       split: test
-  adaptation_method: prototype
-  adaptation_steps: 0
+  adaptation_method: finetune
+  adaptation_steps: 50
+  adaptation_lr: 0.05
+  use_ttt: true
+  ttt_steps: 5
+  ttt_lr: 0.001
+  classifier_type: cosine

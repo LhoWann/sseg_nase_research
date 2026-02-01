@@ -6,14 +6,13 @@ from data.benchmarks.episode_sampler import EpisodeSampler
 from data.benchmarks.minimagenet_dataset import MiniImageNetDataset
 from data.datamodules.curriculum_datamodule import CurriculumDataModule
 from data.datamodules.fewshot_datamodule import FewShotDataModule
-
 __all__ = [
-    "SyntheticGenerator",
-    "DifficultyScorer",
     "CurriculumDataset",
     "CurriculumScheduler",
-    "MiniImageNetDataset",
+    "DifficultyScorer",
+    "SyntheticGenerator",
     "EpisodeSampler",
+    "MiniImageNetDataset",
     "CurriculumDataModule",
     "FewShotDataModule",
 ]

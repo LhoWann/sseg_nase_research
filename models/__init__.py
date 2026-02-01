@@ -8,16 +8,15 @@ from models.nase.sparse_router import SparseRouter
 from models.ssl.ema_teacher import EMATeacher
 from models.ssl.ssl_losses import NTXentLoss
 from models.ssl.ssl_losses import DistillationLoss
-
 __all__ = [
-    "SeedNetwork",
     "EvolvableCNN",
-    "ProjectionHead",
-    "PrototypeHead",
+    "SeedNetwork",
     "EvolutionOperators",
     "MutationSelector",
+    "ProjectionHead",
+    "PrototypeHead",
+    "SparseRouter",
     "EMATeacher",
     "NTXentLoss",
     "DistillationLoss",
-    "SparseRouter",
 ]

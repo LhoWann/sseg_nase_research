@@ -19,7 +19,7 @@
   "train": {
     "experiment_name": "sseg_nase_high_acc",
     "hardware": "default_gpu",
-    "max_epochs": 100,
+    "max_epochs": 30,
     "seed": 42,
     "debug": false,
     "config": "configs/experiments/exp_high_acc.yaml",
@@ -39,7 +39,7 @@
   },
   "ablation": {
     "hardware": "default_gpu",
-    "max_epochs": 50,
+    "max_epochs": 30,
     "seed": 42,
     "ablations": [
       "FULL_PIPELINE"

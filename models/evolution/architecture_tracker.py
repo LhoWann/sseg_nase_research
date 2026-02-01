@@ -2,12 +2,8 @@ from dataclasses import dataclass
 from dataclasses import field
 from pathlib import Path
 from typing import Optional
-
 import json
-
 from models.evolution.evolution_operators import MutationType
-
-
 @dataclass
 class MutationRecord:
     epoch: int
@@ -20,13 +16,10 @@ class MutationRecord:
     num_params_after: int
     ssl_loss_before: float
     ssl_loss_after:  Optional[float] = None
-
-
 @dataclass
 class ArchitectureTracker:
     mutation_history: list[MutationRecord] = field(default_factory=list)
     architecture_snapshots: list[dict] = field(default_factory=list)
-    
     def record_mutation(
         self,
         epoch: int,
@@ -50,22 +43,18 @@ class ArchitectureTracker:
             num_params_after=num_params_after,
             ssl_loss_before=ssl_loss_before,
         )
-        
         self.mutation_history.append(record)
-    
     def record_architecture(self, epoch: int, architecture_summary: dict) -> None:
         snapshot = {
             "epoch": epoch,
             **architecture_summary,
         }
-        
         self.architecture_snapshots.append(snapshot)
-    
     def save(self, filepath: Path) -> None:
         data = {
             "mutation_history": [
                 {
-                    "epoch":  m.epoch,
+                    "epoch": m.epoch,
                     "level": m.level,
                     "mutation_type": m.mutation_type,
                     "target_layer": m.target_layer,
@@ -80,21 +69,16 @@ class ArchitectureTracker:
             ],
             "architecture_snapshots": self.architecture_snapshots,
         }
-        
         filepath.parent.mkdir(parents=True, exist_ok=True)
-        
         with open(filepath, "w") as f:
             json.dump(data, f, indent=2)
-    
     @classmethod
     def load(cls, filepath: Path) -> "ArchitectureTracker":
         with open(filepath, "r") as f:
             data = json.load(f)
-        
         mutation_history = [
             MutationRecord(**record) for record in data["mutation_history"]
         ]
-        
         return cls(
             mutation_history=mutation_history,
             architecture_snapshots=data["architecture_snapshots"],

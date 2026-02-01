@@ -4,12 +4,11 @@ from training.callbacks.evolution_callback import EvolutionCallback
 from training.callbacks.nase_callback import NASECallback
 from training.callbacks.plateau_detector import PlateauDetector
 from training.callbacks.plateau_detector import PlateauStatus
-
 __all__ = [
+    "ArchitectureLogger",
+    "CurriculumCallback",
     "EvolutionCallback",
     "NASECallback",
-    "CurriculumCallback",
     "PlateauDetector",
     "PlateauStatus",
-    "ArchitectureLogger",
 ]

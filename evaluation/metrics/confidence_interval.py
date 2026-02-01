@@ -1,9 +1,6 @@
 from dataclasses import dataclass
 import math
-
 import numpy as np
-
-
 @dataclass
 class ConfidenceInterval:
     mean: float
@@ -12,10 +9,8 @@ class ConfidenceInterval:
     lower: float
     upper: float
     confidence_level: float = 0.95
-    
     def __str__(self) -> str:
         return f"{self.mean:.2f}±{self.margin:.2f}"
-    
     @classmethod
     def from_samples(
         cls,
@@ -25,10 +20,8 @@ class ConfidenceInterval:
         mean = float(np.mean(samples))
         std = float(np.std(samples, ddof=1))
         n = len(samples)
-        
         z_value = 1.96 if confidence_level == 0.95 else 2.576
         margin = z_value * std / math.sqrt(n)
-        
         return cls(
             mean=mean,
             std=std,
@@ -37,7 +30,6 @@ class ConfidenceInterval:
             upper=mean + margin,
             confidence_level=confidence_level,
         )
-    
     @classmethod
     def from_mean_std(
         cls,
@@ -48,7 +40,6 @@ class ConfidenceInterval:
     ) -> "ConfidenceInterval":
         z_value = 1.96 if confidence_level == 0.95 else 2.576
         margin = z_value * std / math.sqrt(n)
-        
         return cls(
             mean=mean,
             std=std,
@@ -57,8 +48,6 @@ class ConfidenceInterval:
             upper=mean + margin,
             confidence_level=confidence_level,
         )
-
-
 def compute_confidence_interval(
     accuracies: list[float],
     confidence_level: float = 0.95,

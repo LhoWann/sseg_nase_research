@@ -1,0 +1,13 @@
+{
+  "experiment_config": "configs/experiments/kaggle_dual_gpu.yaml",
+  "hardware_profile": "kaggle_dual",
+  "continue_on_error": false,
+  "stages": {
+    "generate_curriculum": false,
+    "train": true,
+    "evaluate": true,
+    "ablation": true,
+    "analyze": true,
+    "export": true
+  }
+}

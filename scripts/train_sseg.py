@@ -1,16 +1,13 @@
 import argparse
 from pathlib import Path
 import sys
-
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks import RichProgressBar
 from pytorch_lightning.loggers import TensorBoardLogger
-
 sys.path.insert(0, str(Path(__file__).parent.parent))
-
 from configs.base_config import BaseConfig
 from configs.base_config import PathConfig
 from configs.curriculum_config import CurriculumConfig
@@ -31,13 +28,10 @@ from utils.logging.custom_logger import LogLevel
 from utils.reproducibility.seed_everything import seed_everything
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
-
-
 def parse_arguments() -> argparse. Namespace:
     parser = argparse.ArgumentParser(
         description="Train SSEG-NASE pipeline for few-shot learning"
     )
-    
     parser.add_argument(
         "--config",
         type=Path,
@@ -66,7 +60,7 @@ def parse_arguments() -> argparse. Namespace:
         "--hardware",
         type=str,
         default="default_gpu",
-        choices=["default_gpu"],
+        choices=["default_gpu", "kaggle_dual"],
         help="Hardware profile for optimization",
     )
     parser.add_argument(
@@ -92,10 +86,7 @@ def parse_arguments() -> argparse. Namespace:
         action="store_true",
         help="Enable debug mode with reduced data",
     )
-    
     return parser.parse_args()
-
-
 def create_config(args:  argparse.Namespace) -> BaseConfig:
     config_dict = None
     if args.config and args.config.exists():
@@ -105,7 +96,6 @@ def create_config(args:  argparse.Namespace) -> BaseConfig:
     else:
         experiment_name = args.experiment_name
         seed = args.seed
-
     paths = PathConfig(
         root=args.output_dir,
         data=args.data_dir,
@@ -113,10 +103,7 @@ def create_config(args:  argparse.Namespace) -> BaseConfig:
         checkpoints=args.output_dir / experiment_name / "checkpoints",
         logs=args.output_dir / experiment_name / "logs",
     )
-
     hardware_config = get_hardware_config(args.hardware)
-
-    # Helper to deep-get config or fallback
     def get_nested(cfg, key, default=None):
         if not cfg:
             return default
@@ -128,16 +115,11 @@ def create_config(args:  argparse.Namespace) -> BaseConfig:
             else:
                 return default
         return cur
-
-    # CurriculumConfig
     curriculum = CurriculumConfig(
         image_size=get_nested(config_dict, "curriculum.image_size", 84),
         transition_strategy=get_nested(config_dict, "curriculum.transition_strategy", "gradual"),
         gradual_mixing_ratio=get_nested(config_dict, "curriculum.gradual_mixing_ratio", 0.2),
-        # level_specs will fallback to default if not set
     )
-
-    # EvolutionConfig
     from configs.evolution_config import SeedNetworkConfig, GrowthConfig, NASEConfig, FitnessConfig, EvolutionConfig
     seed_network = SeedNetworkConfig(
         architecture=get_nested(config_dict, "evolution.seed_network.architecture", "cnn"),
@@ -175,8 +157,6 @@ def create_config(args:  argparse.Namespace) -> BaseConfig:
         nase=nase,
         fitness=fitness,
     )
-
-    # SSLConfig
     from configs.ssl_config import AugmentationConfig, ContrastiveLossConfig, DistillationConfig, ProjectionConfig, SSLConfig
     augmentation = AugmentationConfig(
         crop_scale_min=get_nested(config_dict, "ssl.augmentation.crop_scale_min", 0.2),
@@ -210,10 +190,7 @@ def create_config(args:  argparse.Namespace) -> BaseConfig:
         distillation=distillation,
         projection=projection,
     )
-
-    # EvaluationConfig (use default, or extend if needed)
     evaluation = EvaluationConfig()
-
     return BaseConfig(
         experiment_name=experiment_name,
         seed=seed,
@@ -225,8 +202,6 @@ def create_config(args:  argparse.Namespace) -> BaseConfig:
         evaluation=evaluation,
         debug_mode=args.debug,
     )
-
-
 def create_callbacks(config: BaseConfig) -> list[pl.Callback]: 
     callbacks = [
         EvolutionCallback(config.evolution),
@@ -252,51 +227,47 @@ def create_callbacks(config: BaseConfig) -> list[pl.Callback]:
             verbose=True,
         ),
     ]
-    
     return callbacks
-
-
 def create_logger_instance(config: BaseConfig) -> TensorBoardLogger:
     return TensorBoardLogger(
         save_dir=config.paths.logs,
         name=config.experiment_name,
     )
-
-
 def train(config: BaseConfig, args: argparse. Namespace) -> SSEGModule: 
     logger = get_logger(
         name="train_sseg",
         level=LogLevel.DEBUG if args.debug else LogLevel.INFO,
         log_file=config.paths.logs / "training.log",
     )
-    
     logger.info(f"Starting experiment: {config.experiment_name}")
     logger.info(f"Hardware profile: {args.hardware}")
     logger.info(f"Seed: {config.seed}")
     logger.info(f"Evolution config: initial_channels={config.evolution.seed_network.initial_channels}, initial_blocks={config.evolution.seed_network.initial_blocks}, max_blocks={config.evolution.growth.max_blocks}, max_channels={config.evolution.growth.max_channels}, channel_expansion_ratio={config.evolution.growth.channel_expansion_ratio}, plateau_threshold={config.evolution.growth.plateau_threshold}, alpha_complexity_penalty={config.evolution.fitness.alpha_complexity_penalty}")
     logger.info(f"SSL config: distillation_weight={config.ssl.distillation.distillation_weight}, ema_decay={config.ssl.distillation.ema_decay}, projection_dim={config.ssl.projection.output_dim}")
-    
     seed_everything(config.seed, deterministic=True)
-    
     datamodule = CurriculumDataModule(
         curriculum_config=config.curriculum,
         hardware_config=config.hardware,
+        data_dir=config.paths.data,
         seed=config.seed,
     )
-    
     module = SSEGModule(config)
-    
     logger.log_architecture(
         num_blocks=module.backbone.num_blocks,
         num_params=sum(p.numel() for p in module.backbone.parameters()),
         feature_dim=module.backbone.feature_dim,
     )
-    
+    callbacks = create_callbacks(config)
+    tb_logger = create_logger_instance(config)
     callbacks = create_callbacks(config)
     tb_logger = create_logger_instance(config)
     
-    max_epochs_total = args.max_epochs
+    config_max_epochs = None
+    if args.config and args.config.exists():
+        cfg_dict = ConfigLoader.load(args.config)
+        config_max_epochs = cfg_dict.get("training", {}).get("max_epochs")
     
+    max_epochs_total = config_max_epochs if config_max_epochs is not None else args.max_epochs
     trainer = pl.Trainer(
         accelerator=config.hardware.accelerator,
         devices=config.hardware.devices,
@@ -310,25 +281,21 @@ def train(config: BaseConfig, args: argparse. Namespace) -> SSEGModule:
         log_every_n_steps=10,
         fast_dev_run=5 if args.debug else False,
     )
-    
     if args.resume and args.resume.exists():
         logger.info(f"Resuming from checkpoint: {args.resume}")
         trainer.fit(module, datamodule, ckpt_path=str(args.resume))
     else: 
         trainer.fit(module, datamodule)
-    
     final_checkpoint_path = config.paths.checkpoints / "final_model.pt"
     checkpoint_manager = CheckpointManager(
         checkpoint_dir=config.paths.checkpoints,
         experiment_name=config.experiment_name,
     )
-    
     evolution_callback = None
     for callback in callbacks:
         if isinstance(callback, EvolutionCallback):
             evolution_callback = callback
             break
-    
     mutation_history = []
     if evolution_callback: 
         mutation_history = [
@@ -344,14 +311,10 @@ def train(config: BaseConfig, args: argparse. Namespace) -> SSEGModule:
             }
             for m in evolution_callback.architecture_tracker.mutation_history
         ]
-    
     from torch.optim import AdamW
     optimizer = AdamW(module.parameters(), lr=1e-3)
-    
     ssl_history, _ = module.get_loss_history()
     final_ssl_loss = ssl_history[-1] if ssl_history else 0.0
-    
-    # Save checkpoint with epoch naming
     last_ckpt_path = checkpoint_manager.save(
         model=module.backbone,
         optimizer=optimizer,
@@ -364,28 +327,19 @@ def train(config: BaseConfig, args: argparse. Namespace) -> SSEGModule:
     import shutil
     final_model_path = config.paths.checkpoints / "final_model.pt"
     shutil.copyfile(last_ckpt_path, final_model_path)
-    
     logger.info("Training completed successfully")
     logger.log_architecture(
         num_blocks=module.backbone.num_blocks,
         num_params=sum(p.numel() for p in module.backbone.parameters()),
         feature_dim=module.backbone.feature_dim,
     )
-    
     return module
-
-
 def main() -> None:
     args = parse_arguments()
-    
     config = create_config(args)
-    
     trained_module = train(config, args)
-    
     print(f"\nTraining completed:  {config.experiment_name}")
     print(f"Checkpoints saved to: {config.paths.checkpoints}")
     print(f"Logs saved to: {config.paths.logs}")
-
-
 if __name__ == "__main__": 
     main()

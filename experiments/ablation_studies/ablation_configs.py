@@ -3,7 +3,6 @@ from dataclasses import field
 from enum import Enum
 from enum import auto
 from typing import Optional
-
 from configs.curriculum_config import CurriculumConfig
 from configs.evolution_config import EvolutionConfig
 from configs.evolution_config import GrowthConfig
@@ -12,8 +11,6 @@ from configs.evolution_config import SeedNetworkConfig
 from configs.evolution_config import FitnessConfig
 from configs.ssl_config import DistillationConfig
 from configs.ssl_config import SSLConfig
-
-
 class AblationType(Enum):
     SEED_ONLY = auto()
     SSL_ONLY = auto()
@@ -22,45 +19,33 @@ class AblationType(Enum):
     SSEG_DISTILLATION = auto()
     SSEG_NASE = auto()
     FULL_PIPELINE = auto()
-
-
 @dataclass
 class AblationConfig: 
     name: str
     ablation_type: AblationType
     description: str
-    
     enable_sseg: bool = False
     enable_nase: bool = False
     enable_curriculum: bool = False
     enable_distillation: bool = False
-    
     seed_network:  Optional[SeedNetworkConfig] = None
     growth:  Optional[GrowthConfig] = None
     nase: Optional[NASEConfig] = None
     ssl: Optional[SSLConfig] = None
     curriculum: Optional[CurriculumConfig] = None
-    
     def __post_init__(self) -> None:
         if self.seed_network is None: 
             self.seed_network = SeedNetworkConfig()
-        
         if self.growth is None:
             self.growth = GrowthConfig()
-        
         if self.nase is None:
             self.nase = NASEConfig()
-        
         if self.ssl is None: 
             self.ssl = SSLConfig()
-        
         if self.curriculum is None:
             self.curriculum = CurriculumConfig()
-
-
 def create_ablation_configs() -> dict[AblationType, AblationConfig]:
     configs = {}
-    
     configs[AblationType. SEED_ONLY] = AblationConfig(
         name="A1_seed_only",
         ablation_type=AblationType. SEED_ONLY,
@@ -74,7 +59,6 @@ def create_ablation_configs() -> dict[AblationType, AblationConfig]:
             initial_blocks=3,
         ),
     )
-    
     configs[AblationType.SSL_ONLY] = AblationConfig(
         name="A2_ssl_only",
         ablation_type=AblationType.SSL_ONLY,
@@ -92,7 +76,6 @@ def create_ablation_configs() -> dict[AblationType, AblationConfig]:
             plateau_window_size=999999,
         ),
     )
-    
     configs[AblationType.SSEG_ONLY] = AblationConfig(
         name="A3_sseg_only",
         ablation_type=AblationType.SSEG_ONLY,
@@ -118,7 +101,6 @@ def create_ablation_configs() -> dict[AblationType, AblationConfig]:
             pruning_interval_epochs=999999,
         ),
     )
-    
     configs[AblationType.SSEG_CURRICULUM] = AblationConfig(
         name="A4_sseg_curriculum",
         ablation_type=AblationType.SSEG_CURRICULUM,
@@ -148,7 +130,6 @@ def create_ablation_configs() -> dict[AblationType, AblationConfig]:
             gradual_mixing_ratio=0.2,
         ),
     )
-    
     configs[AblationType. SSEG_DISTILLATION] = AblationConfig(
         name="A5_sseg_distillation",
         ablation_type=AblationType. SSEG_DISTILLATION,
@@ -174,7 +155,6 @@ def create_ablation_configs() -> dict[AblationType, AblationConfig]:
             pruning_interval_epochs=999999,
         ),
     )
-    
     configs[AblationType.SSEG_NASE] = AblationConfig(
         name="A6_sseg_nase",
         ablation_type=AblationType. SSEG_NASE,
@@ -202,7 +182,6 @@ def create_ablation_configs() -> dict[AblationType, AblationConfig]:
             use_complementary_masks=True,
         ),
     )
-    
     configs[AblationType. FULL_PIPELINE] = AblationConfig(
         name="A7_full_pipeline",
         ablation_type=AblationType.FULL_PIPELINE,
@@ -234,10 +213,7 @@ def create_ablation_configs() -> dict[AblationType, AblationConfig]:
             gradual_mixing_ratio=0.2,
         ),
     )
-    
     return configs
-
-
 def get_ablation_config(ablation_type: AblationType) -> AblationConfig:
     configs = create_ablation_configs()
     return configs[ablation_type]

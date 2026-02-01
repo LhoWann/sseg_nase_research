@@ -6,14 +6,13 @@ from training.callbacks.plateau_detector import PlateauDetector
 from training.lightning_modules.sseg_module import SSEGModule
 from training.optimizers.optimizer_factory import create_optimizer
 from training.schedulers.lr_scheduler_factory import create_scheduler
-
 __all__ = [
-    "SSEGModule",
+    "ArchitectureLogger",
+    "CurriculumCallback",
     "EvolutionCallback",
     "NASECallback",
-    "CurriculumCallback",
     "PlateauDetector",
-    "ArchitectureLogger",
+    "SSEGModule",
     "create_optimizer",
     "create_scheduler",
 ]

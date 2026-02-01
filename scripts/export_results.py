@@ -2,9 +2,7 @@ import argparse
 from pathlib import Path
 import sys
 import json
-
 sys.path.insert(0, str(Path(__file__).parent.parent))
-
 from visualization.reporters.latex_table_generator import LatexTableGenerator
 from visualization.reporters.latex_table_generator import TableRow
 from visualization.reporters.markdown_reporter import MarkdownReporter
@@ -16,12 +14,10 @@ from utils.logging.custom_logger import get_logger
 from utils.logging.custom_logger import LogLevel
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
-
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Export experiment results to publication-ready formats"
     )
-    
     parser.add_argument(
         "--results-dir",
         type=Path,
@@ -47,37 +43,28 @@ def parse_arguments() -> argparse.Namespace:
         action="store_true",
         help="Include baseline comparisons in tables",
     )
-    
     return parser.parse_args()
-
-
 def load_experiment_results(results_dir: Path) -> dict:
     results = {
         "evaluation": None,
         "ablation": None,
         "evolution": None,
     }
-    
     eval_path = results_dir / "evaluation_results.json"
     if eval_path.exists():
         with open(eval_path, "r") as f:
             results["evaluation"] = json.load(f)
-    
     ablation_path = results_dir / "ablation_results.json"
     if ablation_path.exists():
         with open(ablation_path, "r") as f:
             results["ablation"] = json.load(f)
-    
     for subdir in results_dir.iterdir():
         if subdir.is_dir():
             analysis_path = subdir / "analysis" / "evolution_analysis_report.md"
             if analysis_path.exists():
                 results["evolution"] = str(subdir)
                 break
-    
     return results
-
-
 def generate_main_results_table(
     results: dict,
     include_baselines: bool,
@@ -86,7 +73,6 @@ def generate_main_results_table(
     output_dir: Path,
 ) -> None:
     rows = []
-    
     if include_baselines:
         for method, spec in BASELINE_SPECS.items():
             rows.append(TableRow(
@@ -98,21 +84,16 @@ def generate_main_results_table(
                 five_shot=f"{spec.five_shot_reported:.2f}±0.65",
                 is_ours=False,
             ))
-    
     if results["evaluation"]:
         eval_data = results["evaluation"]
-        
         one_shot = "-"
         five_shot = "-"
-        
         for fs in eval_data.get("few_shot_results", []):
             if fs["num_shots"] == 1:
                 one_shot = f"{fs['mean_accuracy']:.2f}±{fs['margin']:.2f}"
             elif fs["num_shots"] == 5:
                 five_shot = f"{fs['mean_accuracy']:.2f}±{fs['margin']:.2f}"
-        
         efficiency = eval_data.get("efficiency", {})
-        
         rows.append(TableRow(
             method="SSEG-NASE",
             backbone="Evolved-CNN",
@@ -122,7 +103,6 @@ def generate_main_results_table(
             five_shot=five_shot,
             is_ours=True,
         ))
-    
     if rows:
         latex_table = latex_gen.generate_main_results_table(
             rows=rows,
@@ -130,20 +110,17 @@ def generate_main_results_table(
             label="tab:main_results",
         )
         latex_gen.save_table(latex_table, "main_results.tex")
-        
         methods = [r.method for r in rows]
         backbones = [r.backbone for r in rows]
         params = [r.params for r in rows]
         flops = [r.flops for r in rows]
         one_shots = [r.one_shot for r in rows]
         five_shots = [r.five_shot for r in rows]
-        
         highlight_idx = None
         for i, r in enumerate(rows):
             if r.is_ours:
                 highlight_idx = i
                 break
-        
         md_table = md_reporter.generate_comparison_table(
             methods=methods,
             backbones=backbones,
@@ -154,8 +131,6 @@ def generate_main_results_table(
             highlight_idx=highlight_idx,
         )
         md_reporter.save_report(md_table, "main_results.md")
-
-
 def generate_ablation_table(
     results: dict,
     latex_gen: LatexTableGenerator,
@@ -164,9 +139,7 @@ def generate_ablation_table(
 ) -> None:
     if not results["ablation"]:
         return
-    
     ablation_data = results["ablation"]
-    
     configs = []
     sseg = []
     nase = []
@@ -174,7 +147,6 @@ def generate_ablation_table(
     distillation = []
     one_shot = []
     five_shot = []
-    
     component_mapping = {
         "SEED_ONLY": (False, False, False, False),
         "SSL_ONLY": (False, False, False, False),
@@ -184,10 +156,8 @@ def generate_ablation_table(
         "SSEG_NASE": (True, True, False, True),
         "FULL_PIPELINE": (True, True, True, True),
     }
-    
     for ablation in ablation_data:
         configs.append(ablation["config_name"])
-        
         components = component_mapping.get(
             ablation["ablation_type"],
             (False, False, False, False)
@@ -196,26 +166,22 @@ def generate_ablation_table(
         nase.append(components[1])
         curriculum.append(components[2])
         distillation.append(components[3])
-        
         one_shot_acc = "-"
         five_shot_acc = "-"
-        
         for fs in ablation.get("few_shot_results", []):
             if fs["num_shots"] == 1:
                 one_shot_acc = f"{fs['mean_accuracy']:.2f}±{fs['margin']:.2f}"
             elif fs["num_shots"] == 5:
                 five_shot_acc = f"{fs['mean_accuracy']:.2f}±{fs['margin']:.2f}"
-        
         one_shot.append(one_shot_acc)
         five_shot.append(five_shot_acc)
-    
     latex_table = latex_gen.generate_ablation_table(
         configs=configs,
         components={
-            "SSEG": sseg,
-            "NASE": nase,
-            "Curriculum": curriculum,
-            "Distill": distillation,
+            "sseg": sseg,
+            "nase": nase,
+            "curriculum": curriculum,
+            "distillation": distillation,
         },
         one_shot_results=one_shot,
         five_shot_results=five_shot,
@@ -223,7 +189,6 @@ def generate_ablation_table(
         label="tab:ablation",
     )
     latex_gen.save_table(latex_table, "ablation_results.tex")
-    
     md_table = md_reporter.generate_ablation_table(
         configs=configs,
         sseg=sseg,
@@ -234,96 +199,73 @@ def generate_ablation_table(
         five_shot=five_shot,
     )
     md_reporter.save_report(md_table, "ablation_results.md")
-
-
 def export_to_json(results: dict, output_dir: Path) -> None:
     exporter = ResultExporter(output_dir)
-    
     if results["evaluation"]:
         exporter.export_to_json(
             results["evaluation"],
             "evaluation_results.json",
         )
-    
     if results["ablation"]:
         exporter.export_to_json(
             results["ablation"],
             "ablation_results.json",
         )
-
-
 def export_to_csv(results: dict, output_dir: Path) -> None:
     exporter = ResultExporter(output_dir)
-    
     if results["evaluation"]:
         eval_data = results["evaluation"]
-        
         headers = ["num_ways", "num_shots", "mean_accuracy", "std", "margin"]
         rows = []
-        
         for fs in eval_data.get("few_shot_results", []):
             rows.append([
                 fs["num_ways"],
                 fs["num_shots"],
-                f"{fs['mean_accuracy']:.4f}",
-                f"{fs['std']:.4f}",
-                f"{fs['margin']:.4f}",
+                fs["mean_accuracy"],
+                fs["std"],
+                fs["margin"],
             ])
-        
         exporter.export_to_csv(headers, rows, "evaluation_results.csv")
-    
     if results["ablation"]:
         headers = [
-            "config_name",
+            "config",
             "ablation_type",
-            "1shot_accuracy",
-            "5shot_accuracy",
-            "params_millions",
-            "flops_giga",
+            "one_shot",
+            "five_shot",
+            "params_m",
+            "flops_g",
         ]
         rows = []
-        
         for ablation in results["ablation"]:
             one_shot = "-"
             five_shot = "-"
-            
             for fs in ablation.get("few_shot_results", []):
                 if fs["num_shots"] == 1:
                     one_shot = f"{fs['mean_accuracy']:.4f}"
                 elif fs["num_shots"] == 5:
                     five_shot = f"{fs['mean_accuracy']:.4f}"
-            
             efficiency = ablation.get("efficiency", {})
-            
             rows.append([
                 ablation["config_name"],
                 ablation["ablation_type"],
                 one_shot,
                 five_shot,
-                f"{efficiency.get('params_millions', 0):.4f}",
-                f"{efficiency.get('flops_giga', 0):.4f}",
+                efficiency.get("params_millions"),
+                efficiency.get("flops_giga"),
             ])
-        
         exporter.export_to_csv(headers, rows, "ablation_results.csv")
-
-
 def export_results(args: argparse.Namespace) -> None:
     logger = get_logger(
         name="export_results",
         level=LogLevel.INFO,
     )
-    
     output_dir = args.output_dir or (args.results_dir / "export")
     output_dir.mkdir(parents=True, exist_ok=True)
-    
     logger.info(f"Loading results from: {args.results_dir}")
     results = load_experiment_results(args.results_dir)
-    
     latex_gen = LatexTableGenerator(output_dir)
     md_reporter = MarkdownReporter(output_dir)
-    
     exported_files = []
-    
     if "latex" in args.format or "markdown" in args.format:
         logger.info("Generating main results table")
         generate_main_results_table(
@@ -333,12 +275,10 @@ def export_results(args: argparse.Namespace) -> None:
             md_reporter=md_reporter,
             output_dir=output_dir,
         )
-        
         if "latex" in args.format:
             exported_files.append("main_results.tex")
         if "markdown" in args.format:
             exported_files.append("main_results.md")
-        
         if results["ablation"]:
             logger.info("Generating ablation table")
             generate_ablation_table(
@@ -347,31 +287,23 @@ def export_results(args: argparse.Namespace) -> None:
                 md_reporter=md_reporter,
                 output_dir=output_dir,
             )
-            
             if "latex" in args.format:
                 exported_files.append("ablation_results.tex")
             if "markdown" in args.format:
                 exported_files.append("ablation_results.md")
-    
     if "json" in args.format:
         logger.info("Exporting to JSON")
         export_to_json(results, output_dir)
         exported_files.extend(["evaluation_results.json", "ablation_results.json"])
-    
     if "csv" in args.format:
         logger.info("Exporting to CSV")
         export_to_csv(results, output_dir)
         exported_files.extend(["evaluation_results.csv", "ablation_results.csv"])
-    
     logger.info(f"Export complete. Files saved to: {output_dir}")
     for f in exported_files:
         logger.info(f"  - {f}")
-
-
 def main() -> None:
     args = parse_arguments()
     export_results(args)
-
-
 if __name__ == "__main__":
     main()

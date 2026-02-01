@@ -4,12 +4,11 @@ from data.curriculum.difficulty_scorer import DifficultyScorer
 from data.curriculum.difficulty_scorer import DifficultyComponents
 from data.curriculum.synthetic_generator import SyntheticGenerator
 from data.curriculum.synthetic_generator import ShapeType
-
 __all__ = [
-    "SyntheticGenerator",
-    "ShapeType",
-    "DifficultyScorer",
-    "DifficultyComponents",
     "CurriculumDataset",
     "CurriculumScheduler",
+    "DifficultyScorer",
+    "DifficultyComponents",
+    "SyntheticGenerator",
+    "ShapeType",
 ]

@@ -6,7 +6,6 @@ from evaluation.metrics.confidence_interval import ConfidenceInterval
 from evaluation.metrics.confidence_interval import compute_confidence_interval
 from evaluation.protocols.benchmark_protocol import BenchmarkProtocol
 from evaluation.protocols.benchmark_protocol import BenchmarkResult
-
 __all__ = [
     "EfficiencyEvaluator",
     "EfficiencyMetrics",

@@ -11,8 +11,6 @@ from configs.ssl_config import SSLConfig
 from configs.ssl_config import AugmentationConfig
 from configs.evaluation_config import EvaluationConfig
 from configs.evaluation_config import FewShotConfig
-
-
 __all__ = [
     "BaseConfig",
     "HardwareConfig",
