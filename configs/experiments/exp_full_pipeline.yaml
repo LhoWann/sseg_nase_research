@@ -30,13 +30,16 @@ evolution:
     activation: relu
     dropout: 0.1
   growth:
-    max_blocks: 6
-    max_channels: 256
-    channel_expansion_ratio: 1.5
+    max_blocks: 8
+    max_channels: 512
+    channel_expansion_ratio: 1.25
     plateau_window_size: 5
-    plateau_threshold: 0.10
+    plateau_threshold: 0.05
     distillation_gap_threshold: 0.30
     sensitivity_method: taylor
+    post_evolution_warmup_epochs: 3
+    post_evolution_lr_scale: 0.1
+    freeze_old_layers_epochs: 2
   nase:
     sparsity_ratio: 0.4
     pruning_interval_epochs: 5
@@ -46,8 +49,8 @@ evolution:
     negative_scale: 0.1
   fitness:
     alpha_complexity_penalty: 0.0001
-    target_flops_giga: 5.0
-    target_params_million: 30.0
+    target_flops_giga: 10.0
+    target_params_million: 50.0
 
 ssl:
   augmentation:
@@ -70,22 +73,22 @@ ssl:
     distillation_loss: cosine
     update_interval: 1
   projection:
-    hidden_dim: 512
-    output_dim: 128
-    num_layers: 2
+    hidden_dim: 1024
+    output_dim: 256
+    num_layers: 3
     use_batch_norm: true
     dropout: 0.1
 
 training:
-  batch_size: 16
-  learning_rate: 0.0005
+  batch_size: 64
+  learning_rate: 0.0003
   weight_decay: 0.0001
   optimizer: adamw
   scheduler: cosine
-  warmup_epochs: 5
+  warmup_epochs: 3
   min_lr: 0.00001
   dropout: 0.1
-  early_stopping_patience: 10
+  early_stopping_patience: 15
 
 evaluation:
   few_shot:

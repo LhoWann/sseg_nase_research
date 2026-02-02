@@ -53,6 +53,9 @@ def build_config_from_yaml(yaml_path: Path) -> BaseConfig:
         plateau_window_size=growth_cfg["plateau_window_size"],
         plateau_threshold=growth_cfg["plateau_threshold"],
         distillation_gap_threshold=growth_cfg["distillation_gap_threshold"],
+        post_evolution_warmup_epochs=growth_cfg.get("post_evolution_warmup_epochs", 3),
+        post_evolution_lr_scale=growth_cfg.get("post_evolution_lr_scale", 0.1),
+        freeze_old_layers_epochs=growth_cfg.get("freeze_old_layers_epochs", 2),
     )
     nase_cfg = config_dict["evolution"]["nase"]
     nase = NASEConfig(

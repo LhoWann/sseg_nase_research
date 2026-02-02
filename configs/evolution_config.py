@@ -25,6 +25,9 @@ class GrowthConfig:
     plateau_threshold: float = 1e-4
     distillation_gap_threshold: float = 0.1
     sensitivity_method: Literal["gradient", "taylor", "fisher"] = "taylor"
+    post_evolution_warmup_epochs: int = 3
+    post_evolution_lr_scale: float = 0.1
+    freeze_old_layers_epochs: int = 2
     def __post_init__(self) -> None:
         if self.max_blocks <= 0:
             raise ValueError("max_blocks must be positive")
@@ -36,6 +39,10 @@ class GrowthConfig:
             raise ValueError("plateau_window_size must be positive")
         if self.plateau_threshold <= 0:
             raise ValueError("plateau_threshold must be positive")
+        if self.post_evolution_warmup_epochs < 0:
+            raise ValueError("post_evolution_warmup_epochs must be non-negative")
+        if not 0.0 < self.post_evolution_lr_scale <= 1.0:
+            raise ValueError("post_evolution_lr_scale must be in (0, 1]")
 @dataclass(frozen=True)
 class NASEConfig: 
     sparsity_ratio: float = 0.3

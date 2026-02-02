@@ -17,30 +17,47 @@ class EvolutionCallback(Callback):
         )
         self._architecture_tracker = ArchitectureTracker()
         self._current_level = 1
+        self._post_evolution_warmup_remaining = 0
+        self._frozen_layers = []
+        self._original_lr = None
+        self._evolution_epoch = None
+    def on_train_epoch_start(self, trainer: pl.Trainer, pl_module: SSEGModule) -> None:
+        if self._post_evolution_warmup_remaining > 0:
+            warmup_epochs = self._config.growth.post_evolution_warmup_epochs
+            freeze_epochs = self._config.growth.freeze_old_layers_epochs
+            epochs_since_evolution = warmup_epochs - self._post_evolution_warmup_remaining
+            if epochs_since_evolution < freeze_epochs and self._frozen_layers:
+                pass
+            elif epochs_since_evolution == freeze_epochs and self._frozen_layers:
+                self._unfreeze_layers(pl_module)
+            if self._original_lr is not None:
+                progress = (epochs_since_evolution + 1) / warmup_epochs
+                lr_scale = self._config.growth.post_evolution_lr_scale
+                current_scale = lr_scale + (1.0 - lr_scale) * progress
+                for param_group in trainer.optimizers[0].param_groups:
+                    param_group['lr'] = self._original_lr * current_scale
+            self._post_evolution_warmup_remaining -= 1
+            if self._post_evolution_warmup_remaining == 0:
+                self._restore_lr(trainer)
     def on_train_epoch_end(self, trainer: pl.Trainer, pl_module: SSEGModule) -> None:
         metrics = trainer.callback_metrics
         ssl_loss = metrics.get("ssl/dino_loss")
         distill_loss = metrics.get("ssl/dino_loss")
-        
         if ssl_loss is None:
             ssl_history, distill_history = pl_module.get_loss_history()
             if ssl_history:
                 ssl_loss = ssl_history[-1]
                 distill_loss = distill_history[-1] if distill_history else ssl_loss
-
         logger = pl_module.logger.experiment if hasattr(pl_module.logger, 'experiment') else None
         global_step = trainer.current_epoch
-
         if ssl_loss is None:
             if logger:
                 logger.add_text("evolution/debug", f"[Evolution] Epoch {trainer.current_epoch}: Metrics missing, skipping check.", global_step)
             return
-
         if isinstance(ssl_loss, torch.Tensor):
             ssl_loss = ssl_loss.item()
         if isinstance(distill_loss, torch.Tensor):
             distill_loss = distill_loss.item()
-
         self._plateau_detector.update(ssl_loss, distill_loss)
         plateau_status = self._plateau_detector.check_plateau()
         pl_module.log("plateau/is_plateau", float(plateau_status.is_plateau))
@@ -58,6 +75,8 @@ class EvolutionCallback(Callback):
                     "Not evolving yet",
                     global_step
                 )
+        if self._post_evolution_warmup_remaining > 0:
+            return
         if plateau_status.should_evolve:
             if logger:
                 logger.add_text("evolution/debug", f"[Evolution] TRIGGER: Model berevolusi pada epoch {trainer.current_epoch}", global_step)
@@ -79,6 +98,7 @@ class EvolutionCallback(Callback):
                 logger.add_text("evolution/debug", f"[Evolution] Gagal evolusi: MutationType.NONE dipilih pada epoch {trainer.current_epoch}", global_step)
             return
         old_summary = pl_module.backbone.get_architecture_summary()
+        num_old_blocks = old_summary["num_blocks"]
         success = pl_module.evolve_network(mutation_type.name.lower(), target_idx)
         if logger:
             msg = f"Mutasi {mutation_type.name} pada layer {target_idx}"
@@ -102,10 +122,40 @@ class EvolutionCallback(Callback):
             )
             pl_module.clear_loss_history()
             self._plateau_detector.reset()
+            self._start_post_evolution_warmup(trainer, pl_module, num_old_blocks)
             trainer.strategy.setup_optimizers(trainer)
         else:
             if logger:
                 logger.add_text("evolution/debug", f"[Evolution] Gagal grow: Model tidak bertambah blok pada epoch {trainer.current_epoch}", global_step)
+    def _start_post_evolution_warmup(
+        self, trainer: pl.Trainer, pl_module: SSEGModule, num_old_blocks: int
+    ) -> None:
+        self._post_evolution_warmup_remaining = self._config.growth.post_evolution_warmup_epochs
+        self._evolution_epoch = trainer.current_epoch
+        if trainer.optimizers:
+            self._original_lr = trainer.optimizers[0].param_groups[0]['lr']
+            lr_scale = self._config.growth.post_evolution_lr_scale
+            for param_group in trainer.optimizers[0].param_groups:
+                param_group['lr'] = self._original_lr * lr_scale
+        if self._config.growth.freeze_old_layers_epochs > 0:
+            self._freeze_old_layers(pl_module, num_old_blocks)
+    def _freeze_old_layers(self, pl_module: SSEGModule, num_old_blocks: int) -> None:
+        self._frozen_layers = []
+        for idx, block in enumerate(pl_module.backbone._blocks):
+            if idx < num_old_blocks:
+                for param in block.parameters():
+                    if param.requires_grad:
+                        param.requires_grad = False
+                        self._frozen_layers.append(param)
+    def _unfreeze_layers(self, pl_module: SSEGModule) -> None:
+        for param in self._frozen_layers:
+            param.requires_grad = True
+        self._frozen_layers = []
+    def _restore_lr(self, trainer: pl.Trainer) -> None:
+        if self._original_lr is not None and trainer.optimizers:
+            for param_group in trainer.optimizers[0].param_groups:
+                param_group['lr'] = self._original_lr
+        self._original_lr = None
     def _trigger_level_advance(self, trainer: pl.Trainer, pl_module: SSEGModule) -> None:
         datamodule = trainer.datamodule
         if hasattr(datamodule, "advance_curriculum"):
@@ -117,3 +167,4 @@ class EvolutionCallback(Callback):
     @property
     def architecture_tracker(self) -> ArchitectureTracker:
         return self._architecture_tracker
+
